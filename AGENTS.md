@@ -60,7 +60,7 @@ CI (`.github/workflows/ci.yml`) runs:
 
 All three must pass before merging. They run on `ubuntu-latest` (free for a public repository); a small `pick` job skips the parts a change does not touch. Never add a self-hosted runner to this public repository: any fork's pull request could run code on it.
 
-Release builds are repo scripts, run by hand until they move to GitHub Actions:
+Release builds (`.github/workflows/release.yml`) run when a GitHub release is published, also on GitHub-hosted runners. Each job is a repo script, so they also run by hand:
 - `app/scripts/build-windows.sh`: the NSIS installer, cross-built with cargo-xwin; it also compiles the Windows capture backend
 - `app/scripts/build-linux-release.sh`: the bundled OCR engine and the app shell's tests, one start on a virtual display, the signed Flatpak repository and the rpm/deb/AppImage
 
@@ -123,9 +123,9 @@ Treat every change as security-relevant and check before calling it done:
 - **Commit and PR text**: English, a short summary line plus the why. End commits with the co-author line the session asks for, without emoji.
 - **Desktop releases**:
   1. Bump `version` in `app/Cargo.toml` and `app/package.json`, and the `<release>` version in `app/flatpak/com.seolcu.pickgak.metainfo.xml` (Flatpak shows it).
-  2. Merge to main, build with the two scripts above, then `gh release create vX.Y.Z-alpha.N <rpm> <deb> <AppImage> <exe> --prerelease --target main`.
-  3. Make sure the tag points at the merged commit.
-- **Deployment is not part of this repository.** Putting the packages and the Flatpak repository on the server (the `/download` page and the app's updater read `/api/app/latest`) and deploying the backend or website are done from a separate private ops repo, checked out next to this one; its `AGENTS.md` and `docs/services/pickgak.md` hold the steps. Host names, users and paths belong there, not here: this repository is public.
+  2. Merge to main, then `gh release create vX.Y.Z-alpha.N --prerelease --target main --title ... --notes ...`. The release workflow attaches the installer and packages, then `latest.json`, publishes the Flatpak repository on GitHub Pages and pushes `ghcr.io/seolcu/pickgak:<tag>`. Watch it with `gh run watch`; if a job fails, fix it and run the workflow again for the same tag (Actions tab, or `gh workflow run release.yml -f tag=<tag>`).
+  3. The server's `/api/app/latest` (the `/download` page and the app's updater) picks the release up within 5 minutes, once `latest.json` is attached. Downloads go straight to the GitHub release files.
+- **Deploying the website and backend is not part of this repository.** The server runs the `ghcr.io/seolcu/pickgak` image; a separate private ops repo, checked out next to this one, pins the version and holds the steps (its `AGENTS.md` and `docs/services/pickgak.md`). Host names, users and paths belong there, not here: this repository is public.
   - These touch production, so the user runs them, or confirms them first.
   - Verify afterwards with `curl https://pickgak.seolcu.com/api/config`.
   - A frontend-only change also needs this deploy to reach the website.

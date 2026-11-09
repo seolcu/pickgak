@@ -4,7 +4,7 @@
 #   FLATPAK_GPG_KEY=<fingerprint> app/flatpak/build-repo.sh [output-dir]
 #
 # FLATPAK_GPG_KEY must be in GNUPGHOME. Output is an OSTree repository with the .flatpakrepo file,
-# ready to serve over plain HTTP.
+# ready to serve over plain HTTP. The release workflow publishes it on GitHub Pages (FLATPAK_URL).
 #
 # The app only ships prebuilt files (the binary, a static Tesseract, desktop entry, metadata, icon), so
 # nothing runs inside the SDK: the files are laid out by hand and exported with `flatpak build-finish`
@@ -71,7 +71,7 @@ flatpak build-export --disable-sandbox "${SIGN[@]}" "$OUT" "$B" master
 {
   echo "[Flatpak Repo]"
   echo "Title=PickGak"
-  echo "Url=https://pickgak.seolcu.com/api/flatpak/"
+  echo "Url=${FLATPAK_URL:-https://seolcu.github.io/pickgak/flatpak/}"
   echo "Homepage=https://pickgak.seolcu.com/download"
   echo "Comment=Overwatch hero pick helper"
   echo "Description=Overwatch hero pick helper"

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field, StringConstraints
 
 from app import collect, db, downloads, map_images
@@ -168,15 +168,11 @@ def app_latest():
 
 @router.get("/app/download/{name}")
 def app_download(name: str):
-    path = downloads.file_path(name)
-    if path is None:
+    """목록에 있는 파일이면 GitHub 릴리스의 그 파일로 보낸다 (앱의 업데이트도 이 주소를 따라간다)."""
+    url = downloads.download_url(name)
+    if url is None:
         raise HTTPException(404, {"code": "no_download", "params": {}})
-    return FileResponse(
-        path,
-        media_type="application/octet-stream",
-        filename=name,
-        headers={"Cache-Control": "public, max-age=3600"},
-    )
+    return RedirectResponse(url, status_code=302, headers={"Cache-Control": "no-cache"})
 
 
 @router.get("/ranks/{rank}/image")

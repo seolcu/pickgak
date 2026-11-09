@@ -148,7 +148,7 @@ function FlatpakInstall() {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const commands = [
-    "flatpak remote-add --if-not-exists pickgak https://pickgak.seolcu.com/api/flatpak/com.seolcu.pickgak.flatpakrepo",
+    "flatpak remote-add --if-not-exists pickgak https://seolcu.github.io/pickgak/flatpak/com.seolcu.pickgak.flatpakrepo",
     "flatpak install pickgak com.seolcu.pickgak",
   ];
   const copy = () =>
