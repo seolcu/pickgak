@@ -3,13 +3,13 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app import db
+from app import db, seo
 from app.api import account, friends
 from app.api.routes import invalid_situation_handler, router
 from app.recommend.engine import Comps, InvalidSituation, Matchups, load_bans, load_queues, load_weights
@@ -71,15 +71,25 @@ def flatpak_moved(path: str):
 
 
 class SpaFiles(StaticFiles):
-    """빌드된 프론트엔드. 없는 경로는 index.html로 (화면 주소를 새로고침해도 열리게). /api는 제외"""
+    """빌드된 프론트엔드. 화면 주소는 주소별 메타데이터를 넣은 index.html로 (seo.py). /api는 제외"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pages = seo.PageRenderer(Path(self.directory) / "index.html")
+
+    def page(self, path, scope):
+        page_path = "/" if path in ("", ".", "index.html") else "/" + path
+        return self.pages.render(scope, page_path, scope["app"].state.db.get())
 
     async def get_response(self, path, scope):
+        if path in ("", ".", "index.html"):
+            return self.page(path, scope)
         try:
             resp = await super().get_response(path, scope)
         except StarletteHTTPException as e:
             if e.status_code != 404 or path.startswith("api"):
                 raise
-            resp = await super().get_response("index.html", scope)
+            return self.page(path, scope)
         # 해시가 붙은 파일은 오래, index.html은 매번 확인
         resp.headers["Cache-Control"] = (
             "public, max-age=31536000, immutable" if path.startswith("assets/") else "no-cache"
@@ -89,6 +99,19 @@ class SpaFiles(StaticFiles):
 
 # 배포(단일 컨테이너)에서는 백엔드가 프론트엔드도 함께 내보낸다. 개발에서는 Vite가 따로 띄운다
 if _static:
+
+    @app.get("/robots.txt", include_in_schema=False)
+    def robots():
+        return PlainTextResponse(seo.robots_txt(), headers={"Cache-Control": "public, max-age=3600"})
+
+    @app.get("/sitemap.xml", include_in_schema=False)
+    def sitemap(request: Request):
+        return Response(
+            seo.sitemap_xml(request.app.state.db.get()),
+            media_type="application/xml",
+            headers={"Cache-Control": "public, max-age=3600"},
+        )
+
     app.mount("/", SpaFiles(directory=_static, html=True), name="static")
 
 app.add_middleware(
