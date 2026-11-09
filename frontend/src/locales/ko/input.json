@@ -1,0 +1,22 @@
+{
+  "title": "영웅 입력",
+  "target": "넣을 곳",
+  "search": "영웅 검색 (초성 가능) · Enter로 넣기 · / 로 이동",
+  "target_enemies": "상대 팀에 넣기",
+  "target_allies": "우리 팀에 넣기",
+  "target_bans": "금지하기",
+  "hint_enemies": "영웅을 누르면 상대 팀의 맞는 역할 칸에 들어갑니다. 다시 누르면 빠집니다.",
+  "hint_allies": "영웅을 누르면 우리 팀의 맞는 역할 칸에 들어갑니다(랜덤 팀원 칸부터). 내 영웅은 내 칸을 먼저 누르십시오.",
+  "hint_bans": "영웅을 누르면 금지됩니다. 다시 누르면 해제됩니다.",
+  "focusHint": "고른 칸에 넣을 영웅을 누르십시오(Esc로 취소).",
+  "pendingHint": "{{role}} 칸이 다 찼습니다. {{hero}}(으)로 바꿀 칸을 위에서 누르십시오(Esc로 취소).",
+  "tapToRemove": "눌러서 빼기",
+  "slotHint": "눌러서 이 칸 고르기 (교체할 때)",
+  "replaceHere": "여기에 넣기",
+  "why_banned": "금지된 영웅",
+  "why_picked": "이미 고른 영웅은 금지할 수 없습니다.",
+  "why_bansFull": "금지 칸이 다 찼습니다.",
+  "why_banRoleFull": "이 역할은 더 금지할 수 없습니다.",
+  "why_teamFull": "팀이 다 찼습니다.",
+  "why_otherRole": "고른 칸과 역할이 다릅니다."
+}

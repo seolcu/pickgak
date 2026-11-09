@@ -1,0 +1,15 @@
+{
+  "all": "All",
+  "allRoles": "All roles",
+  "cancel": "Cancel",
+  "close": "Close",
+  "collectedAt": "Collected {{date}}",
+  "delete": "Delete",
+  "edit": "Edit",
+  "noHeroMatch": "No heroes found",
+  "preferred": "Preferred hero",
+  "recent": "Recently picked",
+  "save": "Save",
+  "searchHero": "Search heroes",
+  "allHeroes": "All heroes"
+}

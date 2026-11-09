@@ -1,0 +1,9 @@
+{
+  "title": "Quick search",
+  "button": "Search heroes & maps",
+  "placeholder": "Heroes, maps, pages",
+  "heroes": "Heroes",
+  "maps": "Maps",
+  "pages": "Pages",
+  "mapAction": "Pick on this map"
+}

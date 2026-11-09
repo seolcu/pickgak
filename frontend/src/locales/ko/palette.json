@@ -1,0 +1,9 @@
+{
+  "title": "빠른 검색",
+  "button": "영웅·전장 검색",
+  "placeholder": "영웅, 전장, 화면 이름 (초성 가능)",
+  "heroes": "영웅",
+  "maps": "전장",
+  "pages": "화면",
+  "mapAction": "이 전장으로 픽"
+}

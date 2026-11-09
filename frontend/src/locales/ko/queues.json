@@ -1,0 +1,8 @@
+{
+  "role_queue": "역할 고정 {{size}}대{{size}}",
+  "role_queue_hint": "돌격 1 · 공격 2 · 지원 2",
+  "open_queue": "자유 {{size}}대{{size}}",
+  "open_queue_hint": "역할 제한 없음",
+  "other": "기타 {{size}}대{{size}}",
+  "other_hint": "역할 제한 없음 (훈련장, 인공지능전, 사용자 지정 게임)"
+}

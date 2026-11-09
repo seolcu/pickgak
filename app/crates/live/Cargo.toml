@@ -1,0 +1,28 @@
+[package]
+name = "pickgak-live"
+description = "TAB-triggered capture of the game window (X11/XWayland on Linux, Windows Graphics Capture on Windows). Observes the keyboard and copies window pixels; never touches the game process."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+pickgak-vision = { path = "../vision" }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+x11rb = { version = "0.13", features = ["xinput"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = [
+  "Win32_Foundation",
+  "Win32_System_Threading",
+  "Win32_UI_Input_KeyboardAndMouse",
+  "Win32_UI_WindowsAndMessaging",
+] }
+xcap = "0.9"
+image = { version = "0.25", default-features = false }
+
+[dev-dependencies]
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+[[example]]
+name = "probe"

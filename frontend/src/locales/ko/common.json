@@ -1,0 +1,15 @@
+{
+  "all": "전체",
+  "allRoles": "모든 역할",
+  "cancel": "취소",
+  "close": "닫기",
+  "collectedAt": "수집 시각 {{date}}",
+  "delete": "삭제",
+  "edit": "수정",
+  "noHeroMatch": "검색 결과 없음",
+  "preferred": "선호 영웅",
+  "recent": "최근 고른 영웅",
+  "save": "저장",
+  "searchHero": "영웅 검색 (초성 가능: ㄹㅇ)",
+  "allHeroes": "모든 영웅"
+}

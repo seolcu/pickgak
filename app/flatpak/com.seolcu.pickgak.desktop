@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=PickGak
+GenericName=Overwatch hero picker
+Comment=Overwatch hero pick helper
+Exec=pickgak
+Icon=com.seolcu.pickgak
+Terminal=false
+Categories=Game;Utility;
+Keywords=Overwatch;PickGak;
+StartupNotify=true
+StartupWMClass=pickgak

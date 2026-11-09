@@ -1,0 +1,22 @@
+{
+  "title": "Friends",
+  "lead": "Friends' own profiles (preferred roles and heroes) show up as party members. When a friend edits theirs, you see the change.",
+  "add": "Send request",
+  "usernamePlaceholder": "Friend's username",
+  "requested": "Friend request sent to {{name}}",
+  "accepted": "You and {{name}} are now friends",
+  "incoming": "Requests for you",
+  "outgoing": "Sent requests",
+  "accept": "Accept",
+  "decline": "Decline",
+  "cancel": "Cancel",
+  "remove": "Unfriend",
+  "confirmRemove": "Unfriend {{name}}?",
+  "removed": "Unfriended {{name}}",
+  "none": "No friends yet. Send a request with their PickGak username.",
+  "noProfile": "Hasn't made their own profile yet",
+  "badge": "Friend",
+  "linked": "Friend account (they manage it)",
+  "guest": "Log in to add other members as friends and use each other's preferred heroes in party picks.",
+  "shareNote": "Friends see only your own profile's name (your in-game nickname), its alt account nicknames, and its preferred roles and heroes. So the desktop app can spot you on a friend's scoreboard, name your own profile after your in-game nickname and list any alt nicknames."
+}

@@ -1,0 +1,9 @@
+{
+  "title": "Map analysis",
+  "subtitle": "Heroes picked far more than usual on each map.",
+  "pick": "Pick board",
+  "pickHere": "Open the pick board on this map",
+  "ratioHint": "Pick rate on this map ÷ overall pick rate",
+  "winDiffHint": "Win rate on this map − overall win rate",
+  "legend": "× is pick rate vs usual; pp is win-rate difference vs usual. Heroes under 1% overall pick rate are excluded as too noisy."
+}

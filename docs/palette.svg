@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 220" width="1280" height="220">
+  <rect width="1280" height="220" fill="#0f1218"/>
+  <g font-family="Noto Sans CJK KR, sans-serif">
+    <g transform="translate(32 28)">
+      <rect width="168" height="110" rx="14" fill="#ff7a2e"/>
+      <text y="140" fill="#e8ebf1" font-size="18" font-weight="700">각 오렌지</text>
+      <text y="166" fill="#8c95a8" font-size="15">#FF7A2E / #E4560B</text>
+    </g>
+    <g transform="translate(232 28)">
+      <rect width="168" height="110" rx="14" fill="#171b23" stroke="#2a303d"/>
+      <rect x="12" y="12" width="144" height="86" rx="8" fill="#0f1218"/>
+      <text y="140" fill="#e8ebf1" font-size="18" font-weight="700">잉크</text>
+      <text y="166" fill="#8c95a8" font-size="15">#0F1218 / #171B23</text>
+    </g>
+    <g transform="translate(432 28)">
+      <rect width="168" height="110" rx="14" fill="#f4f5f8"/>
+      <text y="140" fill="#e8ebf1" font-size="18" font-weight="700">페이퍼</text>
+      <text y="166" fill="#8c95a8" font-size="15">#F4F5F8 / #FFFFFF</text>
+    </g>
+    <g transform="translate(632 28)">
+      <rect width="168" height="110" rx="14" fill="#5b9cf0"/>
+      <text y="140" fill="#e8ebf1" font-size="18" font-weight="700">아군</text>
+      <text y="166" fill="#8c95a8" font-size="15">#2F7DE1 / #5B9CF0</text>
+    </g>
+    <g transform="translate(832 28)">
+      <rect width="168" height="110" rx="14" fill="#f0606f"/>
+      <text y="140" fill="#e8ebf1" font-size="18" font-weight="700">상대</text>
+      <text y="166" fill="#8c95a8" font-size="15">#D63A4F / #F0606F</text>
+    </g>
+    <g transform="translate(1032 28)">
+      <rect width="66" height="110" rx="12" fill="#6aa1ee"/>
+      <rect x="72" width="66" height="110" rx="12" fill="#f07a74"/>
+      <rect x="144" width="66" height="110" rx="12" fill="#4cc497"/>
+      <text y="140" fill="#e8ebf1" font-size="18" font-weight="700">역할</text>
+      <text y="166" fill="#8c95a8" font-size="15">돌격 · 공격 · 지원</text>
+    </g>
+  </g>
+</svg>

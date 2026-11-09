@@ -1,0 +1,135 @@
+# Team archetypes ("comps") and how strongly each hero fits them (0..1).
+# A hero can fit several archetypes. Heroes not listed (or unsure) are neutral:
+# they get no comp bonus and don't pull the team toward an archetype.
+#
+# dive:   jump onto the backline together (mobility, burst, isolate targets)
+# poke:   long-range damage from safe angles, barriers, sustain at range
+# rush:   brawl / rush: fight close as a group with speed and sustain
+# anchor: hold space and stay put (barriers, sustain, area denial)
+#
+# Seeded from common community knowledge; newer heroes are tagged only where
+# their kit is documented (Domina: segmented-barrier poke tank; Vendetta: melee
+# backline diver; Shion: flanker; Wuyang: ranged damage support; D.Mon: melee
+# brawler for narrow maps; Jetpack Cat: flying, mobile kill-catch support, see
+# docs/team-building.md). Heroes without a clear archetype (Anran, Emre, Mizuki,
+# Sierra, Doctrine, who fits every comp) stay neutral.
+archetypes: [dive, poke, rush, anchor]
+
+# A team "is" an archetype when it has at least min_strength of it (sum of
+# hero weights) and that is at least min_share of the team's total.
+min_strength: 1.0
+min_share: 0.5
+
+heroes:
+  # tank
+  winston: { dive: 1.0 }
+  dva: { dive: 1.0, rush: 0.3 }
+  wrecking-ball: { dive: 1.0 }
+  doomfist: { dive: 1.0 }
+  reinhardt: { rush: 1.0, anchor: 0.4 }
+  junker-queen: { rush: 1.0 }
+  mauga: { rush: 0.8, anchor: 0.6 }
+  ramattra: { rush: 0.9, anchor: 0.4 }
+  zarya: { rush: 0.8, dive: 0.3 }
+  roadhog: { anchor: 0.6, rush: 0.4 }
+  orisa: { anchor: 1.0, poke: 0.6 }
+  sigma: { poke: 1.0, anchor: 0.6 }
+  hazard: { rush: 0.8, dive: 0.4 }
+  domina: { poke: 1.0, anchor: 0.5 }
+  dmon: { rush: 1.0 }
+  # damage
+  genji: { dive: 1.0 }
+  tracer: { dive: 1.0, rush: 0.3 }
+  echo: { dive: 0.8, poke: 0.3 }
+  vendetta: { dive: 0.8, rush: 0.6 }
+  shion: { dive: 0.6, rush: 0.4 }
+  venture: { rush: 0.6, dive: 0.5 }
+  pharah: { dive: 0.6, poke: 0.6 }
+  freja: { poke: 0.5, dive: 0.5 }
+  reaper: { rush: 1.0 }
+  mei: { rush: 0.8, anchor: 0.5 }
+  symmetra: { anchor: 0.6, rush: 0.4 }
+  torbjorn: { anchor: 0.8 }
+  bastion: { poke: 0.6, anchor: 0.6 }
+  cassidy: { anchor: 0.6, poke: 0.4 }
+  junkrat: { poke: 0.6, anchor: 0.4 }
+  soldier-76: { poke: 0.6, rush: 0.4 }
+  sojourn: { poke: 0.8, dive: 0.3 }
+  ashe: { poke: 1.0 }
+  widowmaker: { poke: 1.0 }
+  hanzo: { poke: 1.0 }
+  # support
+  ana: { dive: 0.6, poke: 0.6 }
+  kiriko: { dive: 0.8, rush: 0.3 }
+  sombra: { dive: 0.8 }
+  juno: { dive: 0.6, poke: 0.4 }
+  lucio: { rush: 1.0, dive: 0.4 }
+  brigitte: { rush: 0.9, anchor: 0.4 }
+  moira: { rush: 0.8 }
+  baptiste: { poke: 0.8, anchor: 0.5 }
+  zenyatta: { poke: 0.9, dive: 0.3 }
+  illari: { poke: 0.8, anchor: 0.4 }
+  mercy: { poke: 0.6, dive: 0.4 }
+  lifeweaver: { poke: 0.6, anchor: 0.4 }
+  wuyang: { poke: 0.6 }
+  jetpack-cat: { dive: 1.0 }
+
+
+# Role balance inside a team (applied on top of archetype fit).
+# Principles and sources: docs/team-building.md.
+balance:
+  # Damage and support are usually one "main" + one "sub" (Korean community
+  # convention, see namu.wiki "오버워치/조합"):
+  # - main damage: steady sustained damage from mid/long range
+  # - sub damage: burst/utility, flanks and plays
+  # Two mains (or two subs) works only in specific cases, so it is a mild penalty.
+  main_dps: [sojourn, soldier-76, sierra, ashe, emre, widowmaker, cassidy, torbjorn, freja, hanzo]
+  # - main healer: stable sustained healing; sub healer: burst/utility.
+  #   Two main healers lack utility (mild penalty); two subs can work.
+  main_heal: [lifeweaver, lucio, mercy, mizuki, brigitte, wuyang, juno]
+  pair_penalty: { double_main_dps: 0.25, double_sub_dps: 0.15, double_main_heal: 0.15, weak_pair: 0.15 }
+  # Maps built for main damage, where two mains is a normal pick (no penalty).
+  main_dps_maps: [circuit-royal, havana]
+  # Damage pairs whose weaknesses stack, so one answer shuts both down:
+  # Genji + Widowmaker both lack firepower; Reaper + Junkrat cannot hit flyers.
+  weak_pairs:
+    - [genji, widowmaker]
+    - [reaper, junkrat]
+  # Healing output (0..1), separate from the main/sub label: the team needs at
+  # least one support who can heal the main group alone. Two supports below
+  # min_pair_heal together leave the team short on healing.
+  # Tiers from a high-rank coach's composition guide (docs/team-building.md):
+  # - 0.9 heals the group alone: Ana, Baptiste, Juno, Kiriko, Doctrine
+  # - 0.75 decent healing, not a solo healer: Wuyang, Moira, Lifeweaver, Mercy
+  # - 0.65 a step lower: Illari, Mizuki
+  # - below: Jetpack Cat (heals fine but plays wide and aggressive), Lucio (area
+  #   heal only, no single-target), Brigitte (no poke heal, cannot be the main
+  #   healer), Sombra (a damage-leaning support since her rework), Zenyatta.
+  # Heroes not listed fall back to their official subrole default.
+  heal:
+    ana: 0.9
+    baptiste: 0.9
+    juno: 0.9
+    kiriko: 0.9
+    doctrine: 0.9
+    wuyang: 0.75
+    moira: 0.75
+    lifeweaver: 0.75
+    mercy: 0.75
+    illari: 0.65
+    mizuki: 0.65
+    jetpack-cat: 0.55
+    lucio: 0.45
+    brigitte: 0.45
+    sombra: 0.35
+    zenyatta: 0.3
+  heal_by_subrole: { medic: 0.85, survivor: 0.6, tactician: 0.5 }
+  min_pair_heal: 1.2
+
+# Archetype triangle (namu.wiki, guildorder.com): what each comp is strong into.
+# dive beats poke; rush beats dive; poke beats rush and anchor.
+beats:
+  dive: [poke]
+  rush: [dive]
+  poke: [rush, anchor]
+  anchor: []

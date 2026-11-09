@@ -1,0 +1,28 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# data
+backend/*.db
+backend/*.db-*
+
+# env
+.env
+.env.*
+
+# downloaded assets (map images)
+backend/cache/
+
+# generated OCR runtime (built by app/scripts/build-tesseract.sh)
+app/src-tauri/resources/ocr-linux/
+app/flatpak/tesseract/
+app/src-tauri/resources/tesseract/
+app/flatpak/build-dir/

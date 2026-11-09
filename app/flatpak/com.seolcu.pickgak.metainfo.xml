@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.seolcu.pickgak</id>
+  <name>PickGak</name>
+  <summary>Overwatch hero pick helper</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <description>
+    <p>Hold TAB in Overwatch and PickGak reads the scoreboard, then suggests what to pick from the enemy team, map, meta, party and bans.</p>
+    <p>It never touches the game process: it observes TAB and copies the game window's pixels only while TAB is held.</p>
+  </description>
+  <launchable type="desktop-id">com.seolcu.pickgak.desktop</launchable>
+  <url type="homepage">https://pickgak.seolcu.com</url>
+  <developer id="com.seolcu">
+    <name>seolcu</name>
+  </developer>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="2.14.0" date="2026-11-03"/>
+  </releases>
+</component>

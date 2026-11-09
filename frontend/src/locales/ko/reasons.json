@@ -1,0 +1,28 @@
+{
+  "map": "{{map}} 승률 {{win}}% ({{diff}}%p)",
+  "meta": "{{tier}}티어 · 승률 {{win}}%",
+  "counter": "{{hero}} 상대로 유리",
+  "countered": "{{hero}}에게 불리",
+  "synergy": "{{hero}}와 시너지",
+  "preferred": "선호 영웅",
+  "banRisk": "밴될 수 있음 ({{rate}}%)",
+  "counterStrong": "{{hero}} 상대로 크게 유리",
+  "counteredStrong": "{{hero}}에게 크게 불리",
+  "threatCounter": "위험 플레이어({{hero}}) 카운터",
+  "threatWeak": "위험 플레이어({{hero}})에게 약함",
+  "compFit": "{{comp}} 조합에 맞음",
+  "compCounter": "상대 {{comp}} 조합에 강함",
+  "lowHeal": "힐량 부족 조합",
+  "double_main_dps": "메인딜 둘",
+  "double_sub_dps": "서브딜 둘",
+  "double_main_heal": "메인힐 둘 (유틸 부족)",
+  "weak_pair": "단점이 겹치는 딜러 조합",
+  "short": {
+    "threatCounter": "위험 {{heroes}} 카운터",
+    "threatWeak": "위험 {{heroes}}에 약함",
+    "counter": "{{heroes}} 상대 유리",
+    "countered": "{{heroes}}에 불리",
+    "synergy": "{{heroes}} 시너지",
+    "map": "전장 {{diff}}%p"
+  }
+}

@@ -1,0 +1,59 @@
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+@import "tailwindcss";
+@import "./theme/tokens.css";
+
+@theme inline {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", system-ui,
+    sans-serif;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-ally: var(--ally);
+  --color-ally-soft: var(--ally-soft);
+  --color-enemy: var(--enemy);
+  --color-enemy-soft: var(--enemy-soft);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
+  --color-tank: var(--tank);
+  --color-damage: var(--damage);
+  --color-support: var(--support);
+  --color-tier-s: var(--tier-s);
+  --color-tier-a: var(--tier-a);
+  --color-tier-b: var(--tier-b);
+  --color-tier-c: var(--tier-c);
+  --color-tier-d: var(--tier-d);
+  --shadow-card: var(--shadow);
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    /* 내용 길이에 따라 세로 스크롤바가 생기고 없어지면서 화면 전체가 옆으로 움직이지 않게 */
+    scrollbar-gutter: stable;
+  }
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+    font-feature-settings: "tnum";
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: default;
+  }
+}
+
+/* 데스크톱 오버레이 창: 배경을 투명하게 (패널만 보이게) */
+html.overlay,
+html.overlay body {
+  background: transparent !important;
+}

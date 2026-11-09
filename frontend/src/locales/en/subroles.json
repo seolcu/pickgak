@@ -1,0 +1,12 @@
+{
+  "flanker": "Flanker",
+  "sharpshooter": "Sharpshooter",
+  "specialist": "Specialist",
+  "recon": "Recon",
+  "medic": "Medic",
+  "tactician": "Tactician",
+  "survivor": "Survivor",
+  "stalwart": "Stalwart",
+  "initiator": "Initiator",
+  "bruiser": "Bruiser"
+}

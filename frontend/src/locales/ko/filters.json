@@ -1,0 +1,16 @@
+{
+  "mode": "게임 모드",
+  "competitive": "경쟁전",
+  "quick": "빠른 대전",
+  "rank": "등급",
+  "map": "전장",
+  "allMaps": "모든 전장",
+  "region": "서버 지역",
+  "mapNoData": "{{name}} (통계 없음)",
+  "noDataGroup": "통계 없음",
+  "searchMap": "전장 검색 (초성 가능)",
+  "recentMaps": "최근 고른 전장",
+  "noMapMatch": "검색 결과 없음",
+  "noRank": "등급 없음",
+  "noRankInQuick": "빠른 대전에는 등급이 없습니다."
+}

@@ -1,0 +1,65 @@
+/*
+ * 디자인 토큰. 컴포넌트는 이 변수(또는 아래 @theme로 연결된 Tailwind 색 이름)만 쓴다.
+ * 새 테마를 추가하려면 [data-theme="이름"] 블록 하나를 더 만들고 ThemeProvider의 THEMES에 이름을 넣으면 된다.
+ *
+ * 픽각 브랜드 색 (docs/brand.md)
+ *   각 오렌지  #FF7A2E (어두운 바탕) / #E4560B (밝은 바탕) — 로고 그라데이션 #FF8F3F → #E2500A
+ *   잉크       #0F1218 (어두운 배경), 페이퍼 #F4F5F8 (밝은 배경)
+ *   아군 파랑 / 적 빨강, 역할색 돌격·공격·지원은 게임 관례를 따른다
+ */
+:root,
+[data-theme="light"] {
+  --bg: #f4f5f8;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --border: #dde1e8;
+  --text: #171c26;
+  --muted: #646d80;
+  --accent: #e4560b;
+  --accent-fg: #ffffff;
+  --accent-soft: #fde7da;
+  --ally: #2f7de1;
+  --ally-soft: #e1edfc;
+  --enemy: #d63a4f;
+  --enemy-soft: #fbe3e6;
+  --good: #1f9d63;
+  --bad: #d63a4f;
+  --tank: #3f7fd8;
+  --damage: #d9534f;
+  --support: #2fa37a;
+  --tier-s: #e0483b;
+  --tier-a: #f0861e;
+  --tier-b: #cfa515;
+  --tier-c: #4ea65a;
+  --tier-d: #7a8396;
+  --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 4px 12px rgb(16 24 40 / 6%);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #0f1218;
+  --surface: #171b23;
+  --surface-2: #1f2430;
+  --border: #2a303d;
+  --text: #e8ebf1;
+  --muted: #8c95a8;
+  --accent: #ff7a2e;
+  --accent-fg: #14100d;
+  --accent-soft: #3a2316;
+  --ally: #5b9cf0;
+  --ally-soft: #18263b;
+  --enemy: #f0606f;
+  --enemy-soft: #3a1c22;
+  --good: #3cc486;
+  --bad: #f0606f;
+  --tank: #6aa1ee;
+  --damage: #f07a74;
+  --support: #4cc497;
+  --tier-s: #f0604f;
+  --tier-a: #f79a3c;
+  --tier-b: #dcb735;
+  --tier-c: #62bb6e;
+  --tier-d: #6f788b;
+  --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 16px rgb(0 0 0 / 30%);
+  color-scheme: dark;
+}

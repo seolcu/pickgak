@@ -1,0 +1,21 @@
+{
+  "title": "Meta trends",
+  "subtitle": "How win and pick rates changed since the previous collection.",
+  "noPrevious": "No earlier data to compare",
+  "noPreviousHint": "Changes appear after the next collection (e.g. tomorrow or after a patch).",
+  "role": "Role",
+  "sortBy": "Sort",
+  "byWin": "By win change",
+  "byPick": "By pick change",
+  "hero": "Hero",
+  "winRate": "Win rate",
+  "pickRate": "Pick rate",
+  "compareTo": "Compare to",
+  "sincePrev": "Last collection",
+  "since7d": "7 days ago",
+  "since30d": "30 days ago",
+  "risers": "Rising",
+  "fallers": "Falling",
+  "history": "History",
+  "noMovers": "No changes"
+}

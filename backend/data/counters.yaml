@@ -1,0 +1,88 @@
+# 상성·시너지 (손으로 정리)
+#
+# 상성은 data/matchups.json(실제 대결 데이터 기반 평점, counterwatch.gg 5v5)이 기본이다.
+# 여기 counters: "키 영웅이 목록의 영웅들 상대로 유리하다". 평점이 없는 짝은 이것만 쓰고(±1), 평점이 있는
+# 짝은 평점에 0.3을 더한다 (평점이 중립이어도 '유리'로 보인다. app/recommend/engine.py HAND_BONUS).
+# synergy: 같이 있으면 좋은 조합. 아군에 있으면 서로 가산 (평점 데이터에는 시너지가 없어 여기서만 관리).
+# 영웅 id는 넥슨 통계 페이지의 heroId를 쓴다. 상성 평점 갱신: uv run python -m app.collector.counterwatch
+
+counters:
+  # 돌격
+  winston: [widowmaker, ana, zenyatta, genji, hanzo, ashe]
+  # 매트릭스로 심장 과부하를 지운다 (장문철tv 790화). mauga: [dva]와 맞서 중립이 된다
+  dva: [pharah, echo, widowmaker, hanzo, ashe, junkrat, mauga]
+  wrecking-ball: [widowmaker, ana, zenyatta]
+  reinhardt: [junkrat, torbjorn]
+  zarya: [dva, winston, genji]
+  roadhog: [wrecking-ball, winston, dva]
+  orisa: [reinhardt, junker-queen, doomfist, wrecking-ball]
+  sigma: [junkrat, ashe, widowmaker, mauga, bastion]
+  mauga: [orisa, roadhog, dva]
+  ramattra: [reinhardt, sigma]
+  junker-queen: [reinhardt, lucio]
+  doomfist: [widowmaker, zenyatta, ana]
+  # 공격
+  reaper: [winston, wrecking-ball, dva, reinhardt, roadhog]
+  bastion: [winston, reinhardt, wrecking-ball]
+  mei: [winston, wrecking-ball, dva, lucio, genji]
+  soldier-76: [pharah, echo, mercy]
+  cassidy: [pharah, echo, tracer, genji, wrecking-ball]
+  ashe: [pharah, echo, mercy]
+  widowmaker: [pharah, echo, mercy, ana, zenyatta]
+  hanzo: [pharah, torbjorn, bastion]
+  sojourn: [pharah, echo, domina]
+  symmetra: [reinhardt, sigma, orisa]
+  tracer: [widowmaker, ana, zenyatta, baptiste]
+  genji: [widowmaker, ana, zenyatta, bastion]
+  sombra: [wrecking-ball, doomfist, ana, zenyatta]
+  junkrat: [reinhardt, orisa, torbjorn]
+  # 팔이 긴 딜러가 팔 짧고 큰 영웅을 멀리서 친다 (장문철tv 761화)
+  sierra: [reaper, orisa]
+  torbjorn: [tracer, genji]
+  pharah: [junkrat, torbjorn, reinhardt]
+  echo: [junkrat, reinhardt]
+  # 지원
+  ana: [roadhog, mauga, winston, wrecking-ball, jetpack-cat]
+  brigitte: [tracer, genji, sombra]
+  zenyatta: [roadhog, orisa]
+  kiriko: [ana]
+  moira: [tracer, genji]
+  baptiste: [junkrat]
+  illari: [jetpack-cat]
+  wuyang: [orisa]
+  # 날아다니는 영웅을 쫓아간다 (장문철tv 810화)
+  jetpack-cat: [echo]
+
+synergy:
+  - [reinhardt, lucio]
+  - [reinhardt, brigitte]
+  - [reinhardt, zarya]
+  - [winston, genji]
+  - [winston, tracer]
+  - [winston, dva]
+  - [pharah, mercy]
+  - [echo, mercy]
+  - [ana, roadhog]
+  - [ana, mauga]
+  - [ana, winston]
+  - [zarya, reaper]
+  - [sigma, ashe]
+  - [sigma, widowmaker]
+  - [orisa, bastion]
+  - [kiriko, genji]
+  - [kiriko, tracer]
+  - [zenyatta, wrecking-ball]
+  - [lucio, junker-queen]
+  # nano and speed boost carry the melee D.Mon into a fight
+  - [ana, dmon]
+  # hack heals plus a support who heals the group alone (popular after Sombra's rework)
+  - [sombra, doctrine]
+  # 장문철tv (2026-07 ~ 10, docs/team-building.md)
+  # 여우길·방울이 마우가 돌파 턴을 받쳐 준다 (770화 "거의 필수")
+  - [kiriko, mauga]
+  # 심장 과부하 옆에서 같이 싸우는 근접 딜러 (770, 773화)
+  - [mauga, reaper]
+  # 방벽 받고 같이 들어간다 (799화)
+  - [zarya, genji]
+  # 수면·힐밴에 부조화까지, 무서운 힐 조합 (756화)
+  - [ana, zenyatta]

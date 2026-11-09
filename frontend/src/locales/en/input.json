@@ -1,0 +1,22 @@
+{
+  "title": "Hero input",
+  "target": "Add to",
+  "search": "Search heroes · Enter to add · / to focus",
+  "target_enemies": "Add to enemy team",
+  "target_allies": "Add to my team",
+  "target_bans": "Ban",
+  "hint_enemies": "Click a hero to put it in the matching enemy slot. Click again to remove.",
+  "hint_allies": "Click a hero to put it in the matching ally slot (random teammates first). For your own hero, click your slot first.",
+  "hint_bans": "Click a hero to ban it. Click again to unban.",
+  "focusHint": "Click the hero for the selected slot. (Esc to cancel)",
+  "pendingHint": "{{role}} slots are full. Click the slot above to replace with {{hero}}. (Esc to cancel)",
+  "tapToRemove": "click to remove",
+  "slotHint": "Click to select this slot (to replace)",
+  "replaceHere": "Put it here",
+  "why_banned": "Banned",
+  "why_picked": "Already picked heroes can't be banned",
+  "why_bansFull": "All ban slots are used",
+  "why_banRoleFull": "No more bans for this role",
+  "why_teamFull": "Team is full",
+  "why_otherRole": "Different role from the selected slot"
+}

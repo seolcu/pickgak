@@ -1,0 +1,96 @@
+import logging
+import os
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app import db
+from app.api import account, friends
+from app.api.routes import invalid_situation_handler, router
+from app.recommend.engine import Comps, InvalidSituation, Matchups, load_bans, load_queues, load_weights
+from app.scheduler import Scheduler
+from app.security import SecurityMiddleware, content_security_policy, inline_script_hashes
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    path = os.environ.get("PICKGAK_DB", db.DEFAULT_PATH)
+    db.migrate_legacy_file(path)
+    app.state.db = db.ThreadConnections(path)
+    app.state.matchups = Matchups.load()
+    app.state.weights = load_weights()
+    app.state.queues = load_queues()
+    app.state.bans = load_bans()
+    app.state.comps = Comps.load()
+    scheduler = None
+    if os.environ.get("PICKGAK_AUTOCOLLECT", "1") != "0":
+        # 수집은 별도 연결로 (요청 처리와 쓰기 트랜잭션이 섞이지 않게)
+        scheduler = Scheduler(db.connect(path, migrate=False))
+        scheduler.start()
+    yield
+    if scheduler:
+        scheduler.stop()
+    app.state.db.close_all()
+
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
+logging.getLogger("httpx").setLevel(logging.WARNING)  # 수집 요청마다 찍히는 로그는 생략
+
+# 배포(정적 화면을 함께 내보낼 때)에서는 API 문서(/docs, /openapi.json)를 공개하지 않는다
+_static = os.environ.get("PICKGAK_STATIC")
+_docs = os.environ.get("PICKGAK_DOCS", "0" if _static else "1") == "1"
+app = FastAPI(
+    title="PickGak",
+    lifespan=lifespan,
+    docs_url="/docs" if _docs else None,
+    redoc_url=None,
+    openapi_url="/openapi.json" if _docs else None,
+)
+if not _static:  # 개발용 (배포는 같은 출처에서만 쓰므로 CORS를 열지 않는다)
+    app.add_middleware(
+        CORSMiddleware, allow_origins=["http://localhost:5173"], allow_methods=["*"], allow_headers=["*"]
+    )
+app.add_exception_handler(InvalidSituation, invalid_situation_handler)
+app.include_router(router)
+app.include_router(account.router)
+app.include_router(friends.router)
+
+# Flatpak repository (OSTree + summary + the .flatpakrepo file), uploaded here when a release is deployed.
+# Only what we upload lives here; it is not a general file server.
+_flatpak = Path(
+    os.environ.get("PICKGAK_FLATPAK", Path(os.environ.get("PICKGAK_DB", db.DEFAULT_PATH)).resolve().parent / "flatpak")
+)
+_flatpak.mkdir(parents=True, exist_ok=True)
+app.mount("/api/flatpak", StaticFiles(directory=_flatpak), name="flatpak")
+
+
+class SpaFiles(StaticFiles):
+    """빌드된 프론트엔드. 없는 경로는 index.html로 (화면 주소를 새로고침해도 열리게). /api는 제외"""
+
+    async def get_response(self, path, scope):
+        try:
+            resp = await super().get_response(path, scope)
+        except StarletteHTTPException as e:
+            if e.status_code != 404 or path.startswith("api"):
+                raise
+            resp = await super().get_response("index.html", scope)
+        # 해시가 붙은 파일은 오래, index.html은 매번 확인
+        resp.headers["Cache-Control"] = (
+            "public, max-age=31536000, immutable" if path.startswith("assets/") else "no-cache"
+        )
+        return resp
+
+
+# 배포(단일 컨테이너)에서는 백엔드가 프론트엔드도 함께 내보낸다. 개발에서는 Vite가 따로 띄운다
+if _static:
+    app.mount("/", SpaFiles(directory=_static, html=True), name="static")
+
+app.add_middleware(
+    SecurityMiddleware,
+    csp=content_security_policy(inline_script_hashes(Path(_static) / "index.html")) if _static else None,
+    hsts=os.environ.get("PICKGAK_SECURE_COOKIE") == "1",
+)

@@ -1,0 +1,23 @@
+{
+  "title": "티어표",
+  "subtitle": "고른 지역과 등급의 통계로 역할별 등급을 매겼습니다.",
+  "heroTooltip": "승률 {{win}}% · 픽률 {{pick}}% · 밴률 {{ban}}%\n보정 승률 {{adj}}% · 보정 픽률 {{adjPick}}% (밴으로 못 고른 판 제외)",
+  "legend": "숫자는 승률 · 픽률 (· 밴률)입니다. 픽률이 낮은 영웅은 승률을 50% 쪽으로 보정하며 밴이 많은 영웅은 밴된 판을 빼고 픽률을 계산해 등급을 매깁니다.",
+  "banShort": "밴 {{ban}}%",
+  "view": "보기",
+  "viewTiers": "티어표",
+  "viewTable": "순위표",
+  "topByRole": "역할별 Top 3",
+  "banTop": "밴 Top 5",
+  "banTopHint": "픽 순위에는 안 보이지만 자주 밴되는 영웅",
+  "pickShort": "픽 {{pick}}%",
+  "noBans": "밴 통계 없음",
+  "movers": "상승·하락",
+  "moversHint": "지난 수집 대비 승률 변화",
+  "mapSpecialists": "맵 특화",
+  "mapSpecialistsHint": "특정 전장에서 평소보다 훨씬 많이 골라지는 영웅",
+  "seeAllMaps": "전장 분석 전체 보기",
+  "colMeta": "메타 점수",
+  "colAdjPick": "보정 픽률",
+  "colDelta": "승률 변화"
+}

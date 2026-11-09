@@ -1,0 +1,23 @@
+# 큐(대기열) 규칙. 패치로 규칙이 바뀌면 이 파일만 고치면 된다.
+#
+# team_size: 한 팀 인원
+# slots:     역할별 인원 (없으면 역할 제한 없음)
+# stats_fallback: true면 이 큐 전용 통계가 없어 역할 고정 통계를 대신 쓴다 (화면에 안내)
+# default:   기본 선택 큐
+
+role_queue:
+  team_size: 5
+  slots: { tank: 1, damage: 2, support: 2 }
+  stats_fallback: false
+  default: true
+
+open_queue:
+  team_size: 6
+  slots: null
+  stats_fallback: true
+
+# 훈련장, 인공지능전, 사용자 지정 게임처럼 5명이지만 역할 고정이 아닌 경우
+other:
+  team_size: 5
+  slots: null
+  stats_fallback: true

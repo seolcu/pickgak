@@ -1,0 +1,16 @@
+{
+  "mode": "Game mode",
+  "competitive": "Competitive",
+  "quick": "Quick Play",
+  "rank": "Rank",
+  "map": "Map",
+  "allMaps": "All maps",
+  "region": "Server region",
+  "mapNoData": "{{name}} (no stats)",
+  "noDataGroup": "No stats",
+  "searchMap": "Search maps",
+  "recentMaps": "Recently picked",
+  "noMapMatch": "No maps found",
+  "noRank": "No ranks",
+  "noRankInQuick": "Quick Play has no ranks"
+}

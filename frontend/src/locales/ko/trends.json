@@ -1,0 +1,21 @@
+{
+  "title": "메타 변동",
+  "subtitle": "지난 수집과 비교해 승률과 픽률이 얼마나 바뀌었는지 표시합니다.",
+  "noPrevious": "비교할 이전 데이터 없음",
+  "noPreviousHint": "다음 수집(예: 내일, 패치 후)부터 변동이 표시됩니다.",
+  "role": "역할",
+  "sortBy": "정렬",
+  "byWin": "승률 변화순",
+  "byPick": "픽률 변화순",
+  "hero": "영웅",
+  "winRate": "승률",
+  "pickRate": "픽률",
+  "compareTo": "비교 기준",
+  "sincePrev": "지난 수집",
+  "since7d": "7일 전",
+  "since30d": "30일 전",
+  "risers": "승률 상승",
+  "fallers": "승률 하락",
+  "history": "추이",
+  "noMovers": "변화 없음"
+}

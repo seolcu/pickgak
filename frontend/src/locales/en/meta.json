@@ -1,0 +1,23 @@
+{
+  "title": "Tier list",
+  "subtitle": "Tiers per role from the selected region and rank",
+  "heroTooltip": "Win {{win}}% · Pick {{pick}}% · Ban {{ban}}%\nAdjusted win {{adj}}% · Adjusted pick {{adjPick}}% (excluding banned games)",
+  "legend": "Numbers are win · pick (· ban) rate. Low pick-rate heroes have win rate pulled toward 50%, and pick rate excludes games where the hero was banned.",
+  "banShort": "ban {{ban}}%",
+  "view": "View",
+  "viewTiers": "Tiers",
+  "viewTable": "Table",
+  "topByRole": "Top 3 by role",
+  "banTop": "Top 5 bans",
+  "banTopHint": "Often banned even if they don't show up in pick ranks",
+  "pickShort": "pick {{pick}}%",
+  "noBans": "No ban stats",
+  "movers": "Movers",
+  "moversHint": "Win-rate change since the previous collection",
+  "mapSpecialists": "Map specialists",
+  "mapSpecialistsHint": "Heroes picked far more than usual on a specific map",
+  "seeAllMaps": "See all maps",
+  "colMeta": "Meta",
+  "colAdjPick": "Adj. pick",
+  "colDelta": "Win Δ"
+}

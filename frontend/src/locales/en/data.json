@@ -1,0 +1,12 @@
+{
+  "preparing": "Preparing stats",
+  "preparingHint": "Takes 1–2 minutes the first time only. They'll show up automatically.",
+  "noData": "No stats for these filters yet",
+  "noDataHint": "Per-rank and per-region stats are being filled in automatically. Try other filters or check back shortly.",
+  "stale": "Stale stats",
+  "staleHint": "Stats haven't updated for 3 days. Check the server's internet connection.",
+  "updating": "Updating",
+  "retry": "Try again",
+  "retryHint": "The server didn't answer. Try again in a moment.",
+  "updatingHint": "Fetching the latest stats automatically. You can keep using the current stats meanwhile."
+}

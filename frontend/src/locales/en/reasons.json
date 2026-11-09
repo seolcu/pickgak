@@ -1,0 +1,28 @@
+{
+  "map": "{{map}} win {{win}}% ({{diff}}pp)",
+  "meta": "{{tier}} tier · {{win}}% win",
+  "counter": "Strong vs {{hero}}",
+  "countered": "Weak vs {{hero}}",
+  "synergy": "Synergy with {{hero}}",
+  "preferred": "Preferred",
+  "banRisk": "Often banned ({{rate}}%)",
+  "counterStrong": "Hard counters {{hero}}",
+  "counteredStrong": "Hard countered by {{hero}}",
+  "threatCounter": "Counters the threat ({{hero}})",
+  "threatWeak": "Weak to the threat ({{hero}})",
+  "compFit": "Fits the {{comp}} comp",
+  "compCounter": "Strong into the enemy {{comp}} comp",
+  "lowHeal": "Not enough healing",
+  "double_main_dps": "Two main DPS",
+  "double_sub_dps": "Two flex DPS",
+  "double_main_heal": "Two main healers (little utility)",
+  "weak_pair": "Damage pair with shared weaknesses",
+  "short": {
+    "threatCounter": "Counters threat {{heroes}}",
+    "threatWeak": "Weak to threat {{heroes}}",
+    "counter": "Good vs {{heroes}}",
+    "countered": "Weak to {{heroes}}",
+    "synergy": "Synergy {{heroes}}",
+    "map": "Map {{diff}}%p"
+  }
+}

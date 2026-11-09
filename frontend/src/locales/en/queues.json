@@ -1,0 +1,8 @@
+{
+  "role_queue": "Role queue {{size}}v{{size}}",
+  "role_queue_hint": "1 tank · 2 damage · 2 support",
+  "open_queue": "Open queue {{size}}v{{size}}",
+  "open_queue_hint": "No role limits",
+  "other": "Other {{size}}v{{size}}",
+  "other_hint": "No role limits (practice range, vs AI, custom games)"
+}
