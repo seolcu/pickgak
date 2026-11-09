@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -59,13 +60,14 @@ app.include_router(router)
 app.include_router(account.router)
 app.include_router(friends.router)
 
-# Flatpak repository (OSTree + summary + the .flatpakrepo file), uploaded here when a release is deployed.
-# Only what we upload lives here; it is not a general file server.
-_flatpak = Path(
-    os.environ.get("PICKGAK_FLATPAK", Path(os.environ.get("PICKGAK_DB", db.DEFAULT_PATH)).resolve().parent / "flatpak")
-)
-_flatpak.mkdir(parents=True, exist_ok=True)
-app.mount("/api/flatpak", StaticFiles(directory=_flatpak), name="flatpak")
+# The Flatpak repository lives on GitHub Pages (published by .github/workflows/release.yml). It used to be
+# served here, so remotes added from this address follow the redirect.
+FLATPAK_URL = os.environ.get("PICKGAK_FLATPAK_URL", "https://seolcu.github.io/pickgak/flatpak/")
+
+
+@app.get("/api/flatpak/{path:path}", include_in_schema=False)
+def flatpak_moved(path: str):
+    return RedirectResponse(FLATPAK_URL + path, status_code=302)
 
 
 class SpaFiles(StaticFiles):

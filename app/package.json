@@ -2,7 +2,7 @@
   "name": "pickgak-desktop",
   "private": true,
   "license": "GPL-3.0-or-later",
-  "version": "2.14.0",
+  "version": "2.14.1",
   "scripts": {
     "tauri": "tauri"
   },

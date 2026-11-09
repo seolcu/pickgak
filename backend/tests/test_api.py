@@ -416,39 +416,87 @@ def test_combined_ranks_merge_tier_stats(client, parsed, tmp_path):
     assert client.get("/api/meta", params={"rank": "bronze+bronze"}).status_code == 422
 
 
-def test_app_download(client, tmp_path, monkeypatch):
-    """데스크톱 앱 내려받기: 목록(latest.json)에 있는 파일만, 없으면 404."""
-    d = tmp_path / "downloads"
-    d.mkdir()
-    monkeypatch.setenv("PICKGAK_DOWNLOADS", str(d))
+def test_app_download(client, monkeypatch):
+    """데스크톱 앱 내려받기: GitHub 릴리스의 latest.json에 있고 실제로 붙은 파일만, 내려받기는 그쪽으로 보낸다."""
+    from app import downloads
+
+    gh = "https://github.com/seolcu/pickgak/releases/download/v2.5.1"
+
+    def asset(name, size=3):
+        return {"name": name, "size": size, "state": "uploaded", "browser_download_url": f"{gh}/{name}"}
+
+    releases = [
+        # 올리는 중인 릴리스 (latest.json이 아직 없다)와 초안은 건너뛴다
+        {"draft": False, "assets": [asset("PickGak_2.6.0_x64-setup.exe")]},
+        {"draft": True, "assets": [asset("latest.json")]},
+        {
+            "draft": False,
+            "assets": [
+                asset("latest.json"),
+                asset("PickGak-2.5.1-1.x86_64.rpm"),
+                asset("PickGak_2.5.1_amd64.AppImage", 7),
+                asset("PickGak_2.5.1_x64-setup.exe"),
+                asset("secret.txt"),
+            ],
+        },
+    ]
+    listing = {
+        "version": "2.5.1",
+        "released": "2026-10-26",
+        "files": [
+            {"name": "PickGak-2.5.1-1.x86_64.rpm", "kind": "rpm", "sha256": "abc"},
+            {"name": "PickGak_2.5.1_amd64.AppImage", "kind": "appimage"},
+            {"name": "PickGak_2.5.1_x64-setup.exe", "kind": "exe"},
+            {"name": "PickGak_2.5.1_amd64.deb", "kind": "deb"},  # 릴리스에 없다
+            {"name": "PickGak-2.5.1-1.exe", "kind": "msi"},
+            {"name": "secret.txt", "kind": "rpm"},
+        ],
+    }
+    calls = []
+
+    def fake(url):
+        calls.append(url)
+        if url.startswith("https://api.github.com/"):
+            return releases
+        assert url == f"{gh}/latest.json"
+        return listing
+
+    downloads.reset()
+    monkeypatch.setattr(downloads, "get_json", lambda url: [])
     assert client.get("/api/app/latest").status_code == 404
-    (d / "PickGak-2.5.1-1.x86_64.rpm").write_bytes(b"rpm")
-    (d / "PickGak_2.5.1_amd64.AppImage").write_bytes(b"appimage")
-    (d / "PickGak_2.5.1_x64-setup.exe").write_bytes(b"exe")
-    (d / "secret.txt").write_text("no")
-    (d / "latest.json").write_text(
-        '{"version": "2.5.1", "released": "2026-10-26", "files": ['
-        '{"name": "PickGak-2.5.1-1.x86_64.rpm", "kind": "rpm", "sha256": "abc"},'
-        '{"name": "PickGak_2.5.1_amd64.AppImage", "kind": "appimage"},'
-        '{"name": "PickGak_2.5.1_x64-setup.exe", "kind": "exe"},'
-        '{"name": "PickGak_2.5.1_amd64.deb", "kind": "deb"},'
-        '{"name": "PickGak-2.5.1-1.exe", "kind": "msi"},'
-        '{"name": "../secret.txt", "kind": "rpm"}]}'
-    )
+
+    downloads.reset()
+    monkeypatch.setattr(downloads, "get_json", fake)
     info = client.get("/api/app/latest").json()
-    # 실제로 있는 파일만, 이름 규칙에 맞는 것만
     assert [f["name"] for f in info["files"]] == [
         "PickGak-2.5.1-1.x86_64.rpm",
         "PickGak_2.5.1_amd64.AppImage",
         "PickGak_2.5.1_x64-setup.exe",
     ]
     assert [f["os"] for f in info["files"]] == ["linux", "linux", "windows"]
-    assert info["files"][0]["size"] == 3
-    r = client.get("/api/app/download/PickGak-2.5.1-1.x86_64.rpm")
-    assert r.status_code == 200 and r.content == b"rpm"
-    assert "attachment" in r.headers["content-disposition"]
+    assert [f["size"] for f in info["files"]] == [3, 7, 3]
+    assert "url" not in info["files"][0]
+    r = client.get("/api/app/download/PickGak-2.5.1-1.x86_64.rpm", follow_redirects=False)
+    assert r.status_code == 302 and r.headers["location"] == f"{gh}/PickGak-2.5.1-1.x86_64.rpm"
     for bad in ["secret.txt", "..%2Fsecret.txt", "PickGak_2.5.1_amd64.deb", "PickGak-2.5.1-1.exe"]:
-        assert client.get(f"/api/app/download/{bad}").status_code == 404
+        assert client.get(f"/api/app/download/{bad}", follow_redirects=False).status_code == 404
+    # GitHub에는 몇 분에 한 번만 묻는다
+    assert len(calls) == 2
+
+    # GitHub에 닿지 않으면 마지막 목록을 그대로 쓴다
+    def down(url):
+        raise downloads.httpx.ConnectError("down")
+
+    downloads._cache["at"] = 1.0
+    monkeypatch.setattr(downloads, "get_json", down)
+    assert client.get("/api/app/latest").json()["version"] == "2.5.1"
+    downloads.reset()
+
+
+def test_flatpak_moved_to_pages(client):
+    r = client.get("/api/flatpak/com.seolcu.pickgak.flatpakrepo", follow_redirects=False)
+    assert r.status_code == 302
+    assert r.headers["location"] == "https://seolcu.github.io/pickgak/flatpak/com.seolcu.pickgak.flatpakrepo"
 
 
 def test_login_ends_the_previous_session_in_this_browser(client):

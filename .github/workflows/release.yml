@@ -1,0 +1,174 @@
+name: Release
+
+# Publishing a GitHub release (`gh release create vX.Y.Z-alpha.N --prerelease --title ... --notes ...`)
+# builds and publishes everything on GitHub-hosted runners (free for a public repository):
+# - the Windows installer (cross-built with cargo-xwin) and the rpm/deb/AppImage, attached to the release
+# - latest.json (version, files, SHA-256), attached last: pickgak.seolcu.com/api/app/latest only counts a
+#   release once it has one, and serves it to the installed apps and the download page
+# - the signed Flatpak repository, on GitHub Pages (https://seolcu.github.io/pickgak/flatpak/)
+# - the web app image, ghcr.io/seolcu/pickgak:<version> (arm64, what the server runs)
+# Nothing is kept as an Actions artifact except the Pages upload GitHub requires (kept 1 day).
+# A failed run can be repeated for the same tag from the Actions tab (workflow_dispatch).
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build again, e.g. v2.14.1-alpha.36
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || inputs.tag }}
+
+env:
+  TAG: ${{ github.event.release.tag_name || inputs.tag }}
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  windows:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang lld llvm nsis p7zip-full
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+      - run: cargo install --locked cargo-xwin
+      - run: npm ci
+      - run: npm ci
+        working-directory: frontend
+      - run: scripts/build-windows.sh
+      - run: gh release upload "$TAG" dist/*.exe --clobber
+
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev \
+            patchelf libxdo-dev libssl-dev build-essential file \
+            cmake ninja-build g++ libpng-dev zlib1g-dev \
+            libx11-dev libxi-dev libxcb1-dev libxkbcommon-dev pkg-config \
+            xvfb dbus-x11 rpm flatpak appstream appstream-compose gnupg
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: dtolnay/rust-toolchain@stable
+      - run: npm ci
+        working-directory: app
+      - run: npm ci
+        working-directory: frontend
+      - name: Build the Flatpak repository and the Linux packages
+        env:
+          FLATPAK_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+        run: |
+          [ -n "$FLATPAK_GPG_PRIVATE_KEY" ] || { echo "the FLATPAK_GPG_PRIVATE_KEY secret is not set" >&2; exit 1; }
+          export GNUPGHOME=$(mktemp -d)
+          trap 'rm -rf "$GNUPGHOME"' EXIT
+          echo "$FLATPAK_GPG_PRIVATE_KEY" | gpg --batch --import
+          export FLATPAK_GPG_KEY=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/{print $10; exit}')
+          app/scripts/build-linux-release.sh
+      - run: gh release upload "$TAG" app/dist/*.rpm app/dist/*.deb app/dist/*.AppImage --clobber
+      - name: Lay out the Pages site
+        run: mkdir -p site && cp -a app/flatpak/repo site/flatpak && touch site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+          retention-days: 1
+
+  pages:
+    needs: linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+  image:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          provenance: false
+          tags: |
+            ghcr.io/seolcu/pickgak:${{ env.TAG }}
+            ghcr.io/seolcu/pickgak:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/seolcu/pickgak
+            org.opencontainers.image.licenses=GPL-3.0-or-later
+            org.opencontainers.image.version=${{ env.TAG }}
+
+  latest:
+    # Last, so the server only offers a release whose packages are all there.
+    needs: [windows, linux]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - name: Write latest.json from the attached packages
+        run: |
+          VERSION=$(grep -m1 '^version = ' app/Cargo.toml | cut -d'"' -f2)
+          mkdir dl
+          gh release download "$TAG" -D dl -p '*.rpm' -p '*.deb' -p '*.AppImage' -p '*.exe'
+          entry() { printf '{"name":"%s","kind":"%s","sha256":"%s"}' "$(basename "$1")" "$2" "$(sha256sum "$1" | cut -d' ' -f1)"; }
+          files=()
+          for f in dl/PickGak-"$VERSION"-1.x86_64.rpm; do files+=("$(entry "$f" rpm)"); done
+          for f in dl/PickGak_"$VERSION"_amd64.deb; do files+=("$(entry "$f" deb)"); done
+          for f in dl/PickGak_"$VERSION"_amd64.AppImage; do files+=("$(entry "$f" appimage)"); done
+          for f in dl/PickGak_"$VERSION"_x64-setup.exe; do files+=("$(entry "$f" exe)"); done
+          JSON=$(printf '%s\n' "${files[@]}" | paste -sd, -)
+          printf '{"version":"%s","released":"%s","files":[%s]}\n' "$VERSION" "$(date -u +%F)" "$JSON" > latest.json
+          cat latest.json
+          python3 -c 'import json; d = json.load(open("latest.json")); assert len(d["files"]) == 4, d'
+          gh release upload "$TAG" latest.json --clobber
