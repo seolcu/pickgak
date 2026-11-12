@@ -3057,7 +3057,7 @@ dependencies = [
 
 [[package]]
 name = "pickgak"
-version = "2.14.1"
+version = "2.14.2"
 dependencies = [
  "base64 0.22.1",
  "cookie_store",
@@ -3081,7 +3081,7 @@ dependencies = [
 
 [[package]]
 name = "pickgak-live"
-version = "2.14.1"
+version = "2.14.2"
 dependencies = [
  "image",
  "pickgak-vision",
@@ -3092,7 +3092,7 @@ dependencies = [
 
 [[package]]
 name = "pickgak-vision"
-version = "2.14.1"
+version = "2.14.2"
 dependencies = [
  "image",
 ]

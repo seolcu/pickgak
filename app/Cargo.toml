@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/vision", "crates/live", "src-tauri"]
 
 [workspace.package]
-version = "2.14.1"
+version = "2.14.2"
 edition = "2024"
 license = "GPL-3.0-or-later"
 
