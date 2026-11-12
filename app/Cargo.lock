@@ -3061,6 +3061,8 @@ version = "2.14.1"
 dependencies = [
  "base64 0.22.1",
  "cookie_store",
+ "gdkx11",
+ "gtk",
  "image",
  "libc",
  "pickgak-live",
@@ -3074,6 +3076,7 @@ dependencies = [
  "tauri-build",
  "wait-timeout",
  "windows-sys 0.61.2",
+ "x11rb",
 ]
 
 [[package]]

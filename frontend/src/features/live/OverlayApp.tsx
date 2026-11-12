@@ -180,12 +180,12 @@ function OverlayBody({ onAsking }: { onAsking: (v: boolean) => void }) {
   useEffect(() => {
     if (!ask) return;
     const locked = loadLocal(OVERLAY_LOCKED_KEY, true);
-    invoke("overlay_set", { visible: true, locked: false }).catch(() => {});
+    invoke("overlay_set", { visible: true, locked: false, asking: true }).catch(() => {});
     onAsking(true);
     askTimer.current = window.setTimeout(() => setAsk(null), ASK_IDLE_MS);
     return () => {
       if (askTimer.current !== null) window.clearTimeout(askTimer.current);
-      invoke("overlay_set", { visible: true, locked }).catch(() => {});
+      invoke("overlay_set", { visible: true, locked, asking: true }).catch(() => {});
       onAsking(false);
     };
   }, [ask, onAsking]);
