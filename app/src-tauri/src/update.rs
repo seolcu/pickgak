@@ -259,7 +259,9 @@ fn install_package(app: &AppHandle, path: &Path) -> Result<(), String> {
         });
     }
     if let Some(exe) = installed_exe() {
-        let _ = Command::new(exe).spawn();
+        let _ = Command::new(exe)
+            .env(crate::instance::RESTART_ENV, "1")
+            .spawn();
     }
     app.exit(0);
     Ok(())
@@ -280,7 +282,9 @@ fn install_appimage(app: &AppHandle, path: &Path) -> Result<(), String> {
         let _ = fs::set_permissions(&tmp, fs::Permissions::from_mode(0o755));
     }
     fs::rename(&tmp, &target).map_err(|_| "update.installFailed")?;
-    let _ = Command::new(&target).spawn();
+    let _ = Command::new(&target)
+        .env(crate::instance::RESTART_ENV, "1")
+        .spawn();
     app.exit(0);
     Ok(())
 }

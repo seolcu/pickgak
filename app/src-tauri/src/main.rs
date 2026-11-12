@@ -2,6 +2,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod api;
+mod instance;
+#[cfg(target_os = "linux")]
+mod kde_layer;
 mod live;
 mod ocr;
 mod overlay_layout;
@@ -17,6 +20,31 @@ const OVERLAY: &str = "overlay";
 static OVERLAY_ZOOM: std::sync::atomic::AtomicU64 =
     std::sync::atomic::AtomicU64::new(1.0f64.to_bits());
 static OVERLAY_LOCKED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
+
+/// Show the overlay window; on KDE this keeps its place (see kde_layer).
+fn show_overlay(w: &tauri::WebviewWindow) -> tauri::Result<()> {
+    #[cfg(target_os = "linux")]
+    return kde_layer::show(w);
+    #[cfg(not(target_os = "linux"))]
+    w.show()
+}
+
+/// Bring the main window to the front, making it again if it was closed (the app keeps running in the
+/// tray with the overlay). Used by the tray and by a second start of PickGak.
+pub(crate) fn show_main(app: &tauri::AppHandle) {
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.unminimize();
+        let _ = w.show();
+        let _ = w.set_focus();
+        return;
+    }
+    if let Some(config) = app.config().app.windows.iter().find(|c| c.label == "main")
+        && let Ok(builder) = WebviewWindowBuilder::from_config(app, config)
+        && let Ok(w) = builder.build()
+    {
+        let _ = w.set_focus();
+    }
+}
 
 fn overlay_window(app: &tauri::AppHandle) -> tauri::Result<tauri::WebviewWindow> {
     if let Some(w) = app.get_webview_window(OVERLAY) {
@@ -129,7 +157,7 @@ pub(crate) fn raise_overlay(app: &tauri::AppHandle) {
     // show() also records "visible" in Tauri/tao. A raw SetWindowPos alone leaves tao thinking the
     // window is hidden, and the next click-through change (apply_diff) would hide it again.
     if !w.is_visible().unwrap_or(false) {
-        let _ = w.show();
+        let _ = show_overlay(&w);
     }
     #[cfg(windows)]
     force_topmost(&w);
@@ -193,7 +221,12 @@ fn overlay_fit(app: tauri::AppHandle, height: f64) -> Result<(), String> {
 
 /// Show/hide the overlay. When locked it ignores the mouse (clicks go to the game).
 #[tauri::command]
-fn overlay_set(app: tauri::AppHandle, visible: bool, locked: bool) -> Result<(), String> {
+fn overlay_set(
+    app: tauri::AppHandle,
+    visible: bool,
+    locked: bool,
+    asking: Option<bool>,
+) -> Result<(), String> {
     let w = overlay_window(&app).map_err(|e| e.to_string())?;
     OVERLAY_LOCKED.store(locked, std::sync::atomic::Ordering::Relaxed);
     if !visible {
@@ -203,7 +236,15 @@ fn overlay_set(app: tauri::AppHandle, visible: bool, locked: bool) -> Result<(),
     // inside tao on Linux, and on Windows the click-through change rewrites the window style from
     // tao's saved flags. A raw SetWindowPos alone (without this) left those flags at "hidden", so the
     // next set_ignore_cursor_events hid the window again - the overlay stayed invisible.
-    w.show().map_err(|e| e.to_string())?;
+    // A question on the overlay unlocks it only to take clicks. The window type stays: an unlocked
+    // overlay on KDE is a normal window, which the game would cover.
+    #[cfg(target_os = "linux")]
+    if asking != Some(true) {
+        kde_layer::apply(&w, locked);
+    }
+    #[cfg(not(target_os = "linux"))]
+    let _ = asking;
+    show_overlay(&w).map_err(|e| e.to_string())?;
     // Raise it above the game too, without activating it.
     #[cfg(windows)]
     force_topmost(&w);
@@ -221,8 +262,16 @@ fn main() {
         unsafe { std::env::set_var("GDK_BACKEND", "x11") };
     }
 
+    let Some(instance) = instance::acquire() else {
+        // another PickGak is running and was asked to show itself
+        return;
+    };
+
     tauri::Builder::default()
-        .setup(|app| {
+        .setup(move |app| {
+            if let Some(instance) = instance {
+                instance.listen(app.handle().clone());
+            }
             let state = live::start(app.handle());
             app.manage(state);
             overlay_window(app.handle())?;
@@ -230,7 +279,7 @@ fn main() {
             // window, so showing it never takes focus from the game.
             // PICKGAK_OVERLAY=unlocked: start movable (the drag regression test uses this).
             let unlocked = std::env::var("PICKGAK_OVERLAY").as_deref() == Ok("unlocked");
-            let _ = overlay_set(app.handle().clone(), true, !unlocked);
+            let _ = overlay_set(app.handle().clone(), true, !unlocked, None);
 
             #[cfg(feature = "tray")]
             {
@@ -243,18 +292,13 @@ fn main() {
                     .tooltip("PickGak")
                     .menu(&menu)
                     .on_menu_event(|app, event| match event.id.as_ref() {
-                        "show" => {
-                            if let Some(w) = app.get_webview_window("main") {
-                                let _ = w.show();
-                                let _ = w.set_focus();
-                            }
-                        }
+                        "show" => show_main(app),
                         "overlay" => {
                             if let Ok(w) = overlay_window(app) {
                                 let _ = if w.is_visible().unwrap_or(false) {
                                     w.hide()
                                 } else {
-                                    w.show()
+                                    show_overlay(&w)
                                 };
                             }
                         }

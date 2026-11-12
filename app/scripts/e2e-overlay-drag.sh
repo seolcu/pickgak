@@ -38,8 +38,9 @@ try() {
   sleep 1
   after=$(at)
   echo "$1: before: $before after: $after"
+  # wait for it to exit: PickGak runs one copy at a time, so the next start would find it still running
   kill "$app" 2>/dev/null || true
-  sleep 1
+  wait "$app" 2>/dev/null || true
   [ "$before" != "$after" ]
 }
 

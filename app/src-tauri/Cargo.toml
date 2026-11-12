@@ -31,6 +31,12 @@ pickgak-live = { path = "../crates/live" }
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 
+[target.'cfg(target_os = "linux")'.dependencies]
+# the overlay's window type on KDE (kde_layer.rs); the same versions Tauri already links
+gtk = "0.18"
+gdkx11 = "0.18"
+x11rb = "0.13"
+
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = [
   "Win32_Foundation",
