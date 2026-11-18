@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { AppConfig, QueueConfig, Role } from "../../lib/api";
 import { newBoard, switchQueue, type Board } from "../pick/board";
 import { applyCapture, type CaptureInput } from "./applyCapture";
-import { NO_AUTO_QUEUE } from "./autoQueue";
+import { NO_AUTO_QUEUE, restoreAutoQueue } from "./autoQueue";
 import type { Capture } from "./LiveBar";
 
 const RQ: QueueConfig = { team_size: 5, slots: { tank: 1, damage: 2, support: 2 }, stats_fallback: false, default: true };
@@ -269,5 +269,47 @@ describe("auto queue", () => {
     const r = applyCapture(capture(), input(mine));
     expect(r.queueSet).toBeNull();
     expect(r.board.queue).toBe("other");
+  });
+
+  it("counts the practice range as automatic even when the board is already other", () => {
+    // 2026-11-18 녹화: 기타가 남은 채로 앱을 켜고 훈련장을 거친 뒤 역할 고정 판을 다섯 번 했는데,
+    // 기타가 직접 고른 것으로 남아 지원 자리에 공격 영웅만 추천했다
+    const left = switchQueue(empty(), "other", OTHER, new Map(), []);
+    const range = applyCapture(board(["hanzo", "tracer", "sojourn", "__empty__", "__empty__"], ["tracer"]), input(left));
+    expect(range.queueSet).toBeNull();
+    expect(range.autoQueue.set).toBe("other");
+    const full = applyCapture(capture(), input(range.board, { autoQueue: range.autoQueue, matchStart: 5000 }));
+    expect(full.queueSet).toBe("role_queue");
+  });
+});
+
+describe("restoreAutoQueue", () => {
+  it("keeps a saved automatic other across a restart, so the next legal match goes back", () => {
+    const range = applyCapture(board(["hanzo", "tracer", "sojourn", "__empty__", "__empty__"], ["tracer"]), input(empty()));
+    const saved = JSON.parse(JSON.stringify(range.autoQueue));
+    const restored = restoreAutoQueue(saved, "other");
+    expect(restored).toEqual(range.autoQueue);
+    const full = applyCapture(capture(), input(range.board, { autoQueue: restored, matchStart: 5000 }));
+    expect(full.queueSet).toBe("role_queue");
+  });
+
+  it("keeps a saved hand-picked other", () => {
+    const mine = switchQueue(empty(), "other", OTHER, new Map(), []);
+    const first = applyCapture(capture(), input(mine));
+    const restored = restoreAutoQueue(JSON.parse(JSON.stringify(first.autoQueue)), "other");
+    const later = applyCapture(capture(), input(first.board, { autoQueue: restored, matchStart: 5000 }));
+    expect(later.queueSet).toBeNull();
+    expect(later.board.queue).toBe("other");
+  });
+
+  it("treats an other left by an older version, with nothing saved, as automatic", () => {
+    const left = switchQueue(empty(), "other", OTHER, new Map(), []);
+    const r = applyCapture(capture(), input(left, { autoQueue: restoreAutoQueue(null, "other") }));
+    expect(r.queueSet).toBe("role_queue");
+  });
+
+  it("ignores a malformed saved value", () => {
+    expect(restoreAutoQueue({ match: "x" }, "role_queue")).toEqual(NO_AUTO_QUEUE);
+    expect(restoreAutoQueue({ match: 1, set: "bogus", setIn: 1, locked: false, last: null }, "role_queue")).toEqual(NO_AUTO_QUEUE);
   });
 });

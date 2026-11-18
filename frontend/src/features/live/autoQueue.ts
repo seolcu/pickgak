@@ -15,6 +15,34 @@ export interface AutoQueue {
 
 export const NO_AUTO_QUEUE: AutoQueue = { match: 0, set: null, setIn: 0, locked: false, last: null };
 
+/** 판(board)과 함께 저장한다: 메모리에만 두면 앱을 다시 켰을 때 자동으로 된 기타를 직접 고른 것으로 본다 */
+export const AUTO_QUEUE_KEY = "pickgak.autoQueue";
+
+const QUEUES: readonly string[] = ["role_queue", "open_queue", "other"];
+const isQueue = (v: unknown): v is QueueId => typeof v === "string" && QUEUES.includes(v);
+
+/**
+ * 저장된 자동 판단을 되살린다. 저장된 것이 없는데 판이 기타면 이 기록을 저장하기 전 버전이 남긴 판이다.
+ * 그때는 자동으로 된 기타로 본다: 직접 고른 기타로 보면 역할 고정 판에서도 영영 돌아오지 못하고
+ * (2026-11-18 녹화: 다섯 판 내내 지원 자리에 공격 영웅을 추천), 직접 고른 것이었다면 다시 고르면 된다.
+ */
+export function restoreAutoQueue(saved: unknown, queue: QueueId | null): AutoQueue {
+  if (saved && typeof saved === "object") {
+    const s = saved as Record<string, unknown>;
+    if (
+      typeof s.match === "number" &&
+      typeof s.setIn === "number" &&
+      typeof s.locked === "boolean" &&
+      (s.set === null || isQueue(s.set)) &&
+      (s.last === null || isQueue(s.last))
+    ) {
+      return { match: s.match, set: s.set, setIn: s.setIn, locked: s.locked, last: s.last };
+    }
+  }
+  if (queue === "other") return { ...NO_AUTO_QUEUE, set: "other", setIn: -1, last: "other" };
+  return NO_AUTO_QUEUE;
+}
+
 export interface QueueEvidence {
   /** TAB 화면의 팀별 줄 (판독한 영웅 id 또는 "__unknown__" 같은 상태) */
   allies: (string | null)[];
