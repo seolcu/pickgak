@@ -109,32 +109,55 @@ pub(crate) fn seed_rgb(s: &Seed, bg: [f32; 3]) -> Vec<f32> {
         .collect()
 }
 
-/// Masked matching for dead players: the disc radius and stricter thresholds. Measured on the fixtures and
-/// the competitive captures: with less to compare, a wrong hero can reach 0.66 (Echo for a dead Pharah),
-/// the right ones that pass score 0.83-0.92 with a lead of 0.15+; the rest stay unread.
+/// Masked matching for dead players (skull or respawn timer over the middle): the disc radius and the
+/// thresholds, comparing only the pixels outside the disc (`masked_feature`). Measured on 111 dead rows of
+/// 2026-11-18 quick play captures whose hero was known (alive in a nearby capture, four corrected by eye
+/// for players who switched while dead): radius 0.45 ranks the right hero first in 95; with min 0.5 and
+/// lead 0.08, 70 pass and no wrong hero does (the best wrong one scored 0.545 with a lead of 0.069; at
+/// lead 0.06 one wrong passes). Radius 0.40 or 0.50 ranked fewer first (93, 80). The old flat-filled
+/// disc passed 1 of the 111 at its thresholds (0.7, 0.12) and ranked 50 first.
 pub const DEAD_RADIUS: f32 = 0.45;
-pub const DEAD_MIN: f32 = 0.7;
-pub const DEAD_MARGIN: f32 = 0.12;
+pub const DEAD_MIN: f32 = 0.5;
+pub const DEAD_MARGIN: f32 = 0.08;
 
 /// Best built-in hero for a dead player's portrait (skull or respawn timer over its darkened middle):
 /// compares only the part outside the central disc of radius `r`.
 pub fn match_seed_masked(samples: &[Vec<f32>], bg: [f32; 3], r: f32) -> Match {
-    let feats: Vec<Vec<f32>> = samples
-        .iter()
-        .map(|s| feature(&crate::mask_center(s, r)))
-        .collect();
-    let scores: Vec<(&str, f32)> = seeds()
+    crate::best_of(masked_scores(samples, bg, r), DEAD_MIN, DEAD_MARGIN)
+}
+
+pub fn masked_scores(samples: &[Vec<f32>], bg: [f32; 3], r: f32) -> Vec<(&'static str, f32)> {
+    masked_scores_with(samples, bg, r, true)
+}
+
+/// Every built-in hero's best masked score for these samples (for `match_seed_masked` and diagnostics).
+/// `outer` compares only the pixels outside the disc (`masked_feature`); otherwise the disc is filled
+/// with the mean color (`mask_center`).
+pub fn masked_scores_with(
+    samples: &[Vec<f32>],
+    bg: [f32; 3],
+    r: f32,
+    outer: bool,
+) -> Vec<(&'static str, f32)> {
+    let feat = |rgb: &[f32]| {
+        if outer {
+            crate::masked_feature(rgb, r)
+        } else {
+            feature(&crate::mask_center(rgb, r))
+        }
+    };
+    let feats: Vec<Vec<f32>> = samples.iter().map(|s| feat(s)).collect();
+    seeds()
         .iter()
         .filter(|s| !s.label.starts_with("__"))
         .map(|s| {
-            let sf = feature(&crate::mask_center(&seed_rgb(s, bg), r));
+            let sf = feat(&seed_rgb(s, bg));
             (
                 s.label.as_str(),
                 feats.iter().map(|f| dot(f, &sf)).fold(f32::MIN, f32::max),
             )
         })
-        .collect();
-    crate::best_of(scores, DEAD_MIN, DEAD_MARGIN)
+        .collect()
 }
 
 fn seed_feature(s: &Seed, bg: [f32; 3]) -> Vec<f32> {

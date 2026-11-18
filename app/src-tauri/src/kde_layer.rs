@@ -11,7 +11,16 @@
 //! maps it again and puts it back where it was. Mutter already keeps the overlay over the game, so
 //! this runs only on KDE.
 
+use std::sync::Mutex;
 use std::sync::atomic::{AtomicU8, Ordering};
+
+/// Where the locked overlay belongs. Read back from the window, a resize that came while KWin had just
+/// re-centered it would keep it in the center.
+static HOME: Mutex<Option<tauri::PhysicalPosition<i32>>> = Mutex::new(None);
+
+fn home() -> Option<tauri::PhysicalPosition<i32>> {
+    *HOME.lock().unwrap_or_else(|e| e.into_inner())
+}
 
 const UNSET: u8 = 0;
 const NORMAL: u8 = 1;
@@ -108,6 +117,7 @@ fn retype(w: &tauri::WebviewWindow, osd: bool) -> Result<(), String> {
 /// was overridden, one sent after KWin had managed the window held. So move it back a few times over
 /// the first second, until it stays.
 fn restore_position(w: &tauri::WebviewWindow, p: tauri::PhysicalPosition<i32>) {
+    *HOME.lock().unwrap_or_else(|e| e.into_inner()) = Some(p);
     let w = w.clone();
     std::thread::spawn(move || {
         for delay in [50u64, 150, 300, 500] {
@@ -119,11 +129,48 @@ fn restore_position(w: &tauri::WebviewWindow, p: tauri::PhysicalPosition<i32>) {
     });
 }
 
+/// Resize the overlay and keep it at `keep` (or where it is). KWin also places an OSD again every time
+/// its size changes, not only when it maps one. Measured on Plasma 6.8.2 with a 250x400 OSD moved to
+/// (40, 200): every resize, even 10 px taller, put it back at the screen's horizontal center, low on
+/// the screen; a move sent in the same tick as the resize was overridden, one sent 50 ms later held.
+/// The overlay fits its height to its content after every capture, so it kept jumping onto the
+/// scoreboard in the middle of a match (recording 2026-11-18).
+pub(crate) fn set_size(
+    w: &tauri::WebviewWindow,
+    size: impl Into<tauri::Size>,
+    keep: Option<tauri::PhysicalPosition<i32>>,
+) -> tauri::Result<()> {
+    let osd = on_kde() && CURRENT.load(Ordering::Relaxed) == OSD;
+    let position = if osd {
+        keep.or_else(home).or_else(|| w.outer_position().ok())
+    } else {
+        None
+    };
+    w.set_size(size)?;
+    if let Some(p) = position {
+        restore_position(w, p);
+    }
+    Ok(())
+}
+
+/// Move the overlay and remember the place, so a later resize puts it back there.
+pub(crate) fn set_position(w: &tauri::WebviewWindow, p: tauri::PhysicalPosition<i32>) {
+    if on_kde() && CURRENT.load(Ordering::Relaxed) == OSD {
+        *HOME.lock().unwrap_or_else(|e| e.into_inner()) = Some(p);
+    }
+    let _ = w.set_position(p);
+}
+
 /// Show the overlay where it was. KWin centers an OSD each time it maps one, which put the overlay in
 /// the middle of the game after it was hidden and shown again.
 pub(crate) fn show(w: &tauri::WebviewWindow) -> tauri::Result<()> {
     let kde = on_kde() && !w.is_visible().unwrap_or(true);
-    let position = if kde { w.outer_position().ok() } else { None };
+    let osd = CURRENT.load(Ordering::Relaxed) == OSD;
+    let position = if kde {
+        (if osd { home() } else { None }).or_else(|| w.outer_position().ok())
+    } else {
+        None
+    };
     w.show()?;
     if let Some(p) = position {
         restore_position(w, p);
