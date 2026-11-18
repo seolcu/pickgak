@@ -304,8 +304,8 @@ fn built_in_portraits_recognize_heroes_before_any_teaching() {
                 s("lifeweaver"),
             ],
         ),
-        // 1280x720; the last two enemies show respawn timers
-        // the last enemy's respawn timer covers the middle; Lifeweaver is still recognized around it
+        // 1280x720; the last two enemies show respawn timers, and both heroes are read around them
+        // (Ana is the same player's hero in f_825)
         (
             "f_619.jpg",
             vec![
@@ -317,7 +317,7 @@ fn built_in_portraits_recognize_heroes_before_any_teaching() {
                 s("dmon"),
                 s("shion"),
                 s("sierra"),
-                n,
+                s("ana"),
                 s("lifeweaver"),
             ],
         ),
@@ -332,7 +332,7 @@ fn built_in_portraits_recognize_heroes_before_any_teaching() {
                 s("dmon"),
                 s("shion"),
                 s("sierra"),
-                n,
+                s("ana"),
                 s("lifeweaver"),
             ],
         ),
@@ -370,12 +370,12 @@ fn built_in_portraits_recognize_heroes_before_any_teaching() {
                 s("jetpack-cat"),
             ],
         ),
-        // skulls: the hero around it is read when clear enough (Zenyatta, Tracer), else it stays "dead"
+        // skulls: the hero around each one is read (Genji is the same player's hero in comp_header_edge)
         (
             "comp_dead_2560.jpg",
             vec![
                 s("doomfist"),
-                d,
+                s("genji"),
                 s("soldier-76"),
                 s("zenyatta"),
                 s("mercy"),
@@ -406,6 +406,40 @@ fn built_in_portraits_recognize_heroes_before_any_teaching() {
         (
             "range_widow_2560.jpg",
             vec![s("widowmaker"), e, e, e, e, s("tracer")],
+        ),
+        // three enemies under respawn timers: Soldier and Junkrat are read around the timer; Roadhog
+        // stays unread (no hero clears the thresholds), and the board keeps what it had
+        (
+            "dead_timers_2560.jpg",
+            vec![
+                s("orisa"),
+                s("mei"),
+                s("ashe"),
+                s("illari"),
+                s("juno"),
+                n,
+                s("soldier-76"),
+                s("junkrat"),
+                s("moira"),
+                s("juno"),
+            ],
+        ),
+        // the second ally switched from Vendetta to Pharah while dead: the skull shows the new hero.
+        // My dark Doctrine portrait under the skull stays "dead"
+        (
+            "dead_switched_2560.jpg",
+            vec![
+                s("orisa"),
+                s("pharah"),
+                s("mei"),
+                d,
+                s("kiriko"),
+                s("doomfist"),
+                s("reaper"),
+                s("venture"),
+                s("kiriko"),
+                s("lucio"),
+            ],
         ),
     ] {
         let (data, width, height) = frame(name);

@@ -347,6 +347,74 @@ pub fn feature(rgb: &[f32]) -> Vec<f32> {
     out
 }
 
+/// `feature` over the part of the samples outside the central disc (radius `r` of the side) only: the
+/// mean, spread and gradients come from the outer pixels, and the disc adds nothing. Filling the disc with
+/// a flat color instead (`mask_center`) let the flat area and its edge weigh in the normalization, which
+/// left a dead player's portrait unread in most cases (2026-11-18 captures).
+pub fn masked_feature(rgb: &[f32], r: f32) -> Vec<f32> {
+    let n = FEAT_SIZE * FEAT_SIZE;
+    let half = FEAT_SIZE as f32 / 2.0;
+    let outside: Vec<bool> = (0..n)
+        .map(|k| {
+            let (x, y) = (
+                (k % FEAT_SIZE) as f32 + 0.5 - half,
+                (k / FEAT_SIZE) as f32 + 0.5 - half,
+            );
+            x * x + y * y >= (r * FEAT_SIZE as f32).powi(2)
+        })
+        .collect();
+    let vals = || {
+        (0..n)
+            .filter(|&k| outside[k])
+            .flat_map(|k| rgb[k * 3..k * 3 + 3].iter().copied())
+    };
+    let cnt = vals().count().max(1) as f32;
+    let mean = vals().sum::<f32>() / cnt;
+    let sd = (vals().map(|v| (v - mean).powi(2)).sum::<f32>() / cnt).sqrt() + 1e-6;
+    let c: Vec<f32> = (0..n * 3)
+        .map(|i| {
+            if outside[i / 3] {
+                (rgb[i] - mean) / sd
+            } else {
+                0.0
+            }
+        })
+        .collect();
+    let gray: Vec<f32> = (0..n)
+        .map(|i| (c[i * 3] + c[i * 3 + 1] + c[i * 3 + 2]) / 3.0)
+        .collect();
+    let last = FEAT_SIZE - 1;
+    let at = |x: usize, y: usize| gray[y * FEAT_SIZE + x];
+    let out_at = |x: usize, y: usize| outside[y * FEAT_SIZE + x];
+    let mut out = Vec::with_capacity(n * 5);
+    out.extend_from_slice(&c);
+    let mut gx = Vec::with_capacity(n);
+    let mut gy = Vec::with_capacity(n);
+    for y in 0..FEAT_SIZE {
+        for x in 0..FEAT_SIZE {
+            let (x0, x1) = (x.saturating_sub(1), (x + 1).min(last));
+            let (y0, y1) = (y.saturating_sub(1), (y + 1).min(last));
+            let hx = out_at(x0, y) && out_at(x1, y);
+            let hy = out_at(x, y0) && out_at(x, y1);
+            gx.push(if hx {
+                2.0 * (at(x1, y) - at(x0, y)) / (x1 - x0).max(1) as f32
+            } else {
+                0.0
+            });
+            gy.push(if hy {
+                2.0 * (at(x, y1) - at(x, y0)) / (y1 - y0).max(1) as f32
+            } else {
+                0.0
+            });
+        }
+    }
+    out.extend(gx);
+    out.extend(gy);
+    let norm = out.iter().map(|v| v * v).sum::<f32>().sqrt().max(1e-9);
+    out.iter_mut().for_each(|v| *v /= norm);
+    out
+}
+
 /// Feature of portrait row `i`.
 pub fn portrait_feature(f: &Frame, l: &Layout, i: usize) -> Vec<f32> {
     feature(&sample(f, inner_box(portrait_box(l, i))))
