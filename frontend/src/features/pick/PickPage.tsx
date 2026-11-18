@@ -57,7 +57,7 @@ import { PartyMatchCard, type PartyNeed } from "./PartyMatchCard";
 import { OverlayPreview } from "./OverlayPreview";
 import { HOME_LAYOUT_KEY, type HomeLayout } from "./homeLayout";
 import { applyCapture, partyKey, type AutoMode, type Seen } from "../live/applyCapture";
-import { NO_AUTO_QUEUE, type AutoQueue } from "../live/autoQueue";
+import { AUTO_QUEUE_KEY, restoreAutoQueue, type AutoQueue } from "../live/autoQueue";
 import { invoke, isDesktop } from "../../lib/platform";
 import { useSyncPlayers } from "../live/useSyncPlayers";
 import { useSyncMaps } from "../live/useSyncMaps";
@@ -135,7 +135,10 @@ function PickBoard({
   /** 이번 판에서 TAB 화면으로 자동 판단한 통계 모드 */
   const autoMode = useRef<AutoMode>({ match: 0, set: null, locked: false });
   /** TAB 화면으로 자동 판단한 대기열 (훈련장·인공지능전은 기타, 6대6은 자유) */
-  const autoQueue = useRef<AutoQueue>(NO_AUTO_QUEUE);
+  const [savedAutoQueue] = useState(() =>
+    restoreAutoQueue(loadLocal<unknown>(AUTO_QUEUE_KEY, null), loadLocal<Board | null>(BOARD_KEY, null)?.queue ?? null),
+  );
+  const autoQueue = useRef<AutoQueue>(savedAutoQueue);
   /** 사용자가 직접 끈 양학 의심 줄. 그 판에서는 다시 자동 표시하지 않는다 */
   const dismissedSmurfs = useRef<Set<number>>(new Set());
 
@@ -484,6 +487,7 @@ function PickBoard({
             seen.current = r.seen;
             autoMode.current = r.autoMode;
             autoQueue.current = r.autoQueue;
+            saveLocal(AUTO_QUEUE_KEY, r.autoQueue);
             if (r.queueSet) {
               const queue = t(`queues.${r.queueSet}`, { size: config.queues[r.queueSet].team_size });
               toast(t("live.queueSet", { queue }), { id: "live-queue", action: { label: t("pick.undo"), onClick: undo } });

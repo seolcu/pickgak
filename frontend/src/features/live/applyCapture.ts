@@ -130,9 +130,13 @@ export function applyCapture(c: Capture, inp: CaptureInput): CaptureResult {
         autoQueue.set === "other" && autoQueue.setIn !== matchStart,
       );
   const queueSet = queue && queue !== inp.board.queue ? queue : null;
+  // 이미 기타인 판에 기타의 근거(훈련장 등)가 보여도 자동으로 정한 것으로 기록한다. 기록하지 않으면
+  // 그 기타는 직접 고른 것처럼 남아 다음 역할 고정 판에서 돌아오지 못한다
   autoQueue = queueSet
     ? { ...autoQueue, set: queueSet, setIn: matchStart, last: queueSet }
-    : { ...autoQueue, last: inp.board.queue };
+    : queue === "other"
+      ? { ...autoQueue, set: "other", setIn: matchStart, last: inp.board.queue }
+      : { ...autoQueue, last: inp.board.queue };
   let base = nextMatch ? newMatch(inp.board) : inp.board;
   if (queueSet) base = inp.switchQueue(base, queueSet);
   // 대기열을 바꿨으면 전 화면에서 자리가 없어 못 넣은 영웅이 있을 수 있다: 화면 전체를 다시 넣는다
