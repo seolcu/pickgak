@@ -29,6 +29,22 @@ fn show_overlay(w: &tauri::WebviewWindow) -> tauri::Result<()> {
     w.show()
 }
 
+/// Resize the overlay window; on KDE this keeps its place (KWin re-centers an OSD on every resize),
+/// at `keep` when given.
+fn resize_overlay(
+    w: &tauri::WebviewWindow,
+    size: impl Into<tauri::Size>,
+    keep: Option<tauri::PhysicalPosition<i32>>,
+) -> tauri::Result<()> {
+    #[cfg(target_os = "linux")]
+    return kde_layer::set_size(w, size, keep);
+    #[cfg(not(target_os = "linux"))]
+    {
+        let _ = keep;
+        w.set_size(size)
+    }
+}
+
 /// Bring the main window to the front, making it again if it was closed (the app keeps running in the
 /// tray with the overlay). Used by the tray and by a second start of PickGak.
 pub(crate) fn show_main(app: &tauri::AppHandle) {
@@ -107,11 +123,18 @@ pub(crate) fn fit_overlay_to_scoreboard(
     let Ok(dpi) = w.scale_factor() else { return };
     let origin = monitor.position();
     let position = tauri::PhysicalPosition::new(origin.x + p.x as i32, origin.y + p.y as i32);
-    if w.outer_position().ok() != Some(position) {
-        let _ = w.set_position(position);
-    }
     if size.width != p.width {
-        let _ = w.set_size(tauri::PhysicalSize::new(p.width, size.height));
+        let _ = resize_overlay(
+            &w,
+            tauri::PhysicalSize::new(p.width, size.height),
+            Some(position),
+        );
+    }
+    if w.outer_position().ok() != Some(position) {
+        #[cfg(target_os = "linux")]
+        kde_layer::set_position(&w, position);
+        #[cfg(not(target_os = "linux"))]
+        let _ = w.set_position(position);
     }
     let zoom = p.scale / dpi;
     if f64::from_bits(OVERLAY_ZOOM.load(std::sync::atomic::Ordering::Relaxed)) != zoom
@@ -215,8 +238,7 @@ fn overlay_fit(app: tauri::AppHandle, height: f64) -> Result<(), String> {
         return Ok(());
     }
     let width = size.width as f64 / scale;
-    w.set_size(tauri::LogicalSize::new(width, height))
-        .map_err(|e| e.to_string())
+    resize_overlay(&w, tauri::LogicalSize::new(width, height), None).map_err(|e| e.to_string())
 }
 
 /// Show/hide the overlay. When locked it ignores the mouse (clicks go to the game).
