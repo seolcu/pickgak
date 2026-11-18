@@ -9,13 +9,14 @@ import { useConfig, useHeroes, useMaps, usePlayers } from "../../hooks/data";
 import { PrefsProvider, usePrefs } from "../../hooks/prefs";
 import { invoke, listen } from "../../lib/platform";
 import { cn } from "../../lib/cn";
-import { loadLocal } from "../../lib/storage";
+import { loadLocal, saveLocal } from "../../lib/storage";
 import { BanReasons, VOTE_PICKS } from "../pick/BanPanel";
 import { ReasonChips } from "../pick/Reasons";
 import { ThemeProvider } from "../../theme/ThemeProvider";
 import { inBanPhase, isCompatible, onlyPreferredFor, preferredBy, type Board } from "../pick/board";
 import { useRecommendations } from "../pick/useRecommendations";
-import { MATCH_START_KEY, OVERLAY_LOCKED_KEY, type Capture, type NameMatch } from "./LiveBar";
+import { OVERLAY_LOCKED_KEY, type Capture, type NameMatch } from "./LiveBar";
+import { ASK_SNOOZE_KEY, isSnoozed, parseSnooze, snooze, unsnooze } from "./askSnooze";
 import { PartyAsk } from "./PartyAsk";
 import { useLiveCapture } from "./useLiveCapture";
 import { useSyncPlayers } from "./useSyncPlayers";
@@ -25,8 +26,6 @@ const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnWind
 const BOARD_KEY = "pickgak.board";
 /** 오버레이를 TAB을 누르고 있는 동안만 보여 주기 (메인 창에서 켜고 끈다) */
 export const TAB_ONLY_KEY = "pickgak.overlay.tabOnly";
-/** "나중에"를 고른 이름. 판이 바뀌면 지운다 */
-const dismissedNames = new Set<string>();
 /** 질문이 답 없이 오래 떠 있으면 클릭 통과로 돌려놓는다 */
 const ASK_IDLE_MS = 30_000;
 
@@ -54,7 +53,6 @@ export function OverlayApp() {
     document.documentElement.classList.add("overlay");
     const on = (e: StorageEvent) => {
       if (e.key === TAB_ONLY_KEY) setTabOnly(loadLocal(TAB_ONLY_KEY, false));
-      if (e.key === MATCH_START_KEY) dismissedNames.clear();
     };
     window.addEventListener("storage", on);
     let off: (() => void) | undefined;
@@ -103,7 +101,7 @@ function findAsk(
     // One answer per registered player, not per hero: a party member changes heroes between
     // matches, and the question must not come back just because the hero changed.
     const key = r.name ? `p${r.name.player}` : `h${r.label}`;
-    if (dismissedNames.has(key)) continue;
+    if (isSnoozed(parseSnooze(loadLocal<unknown>(ASK_SNOOZE_KEY, null)), key, now)) continue;
     return {
       captureId: capture.id,
       row,
@@ -146,7 +144,6 @@ function OverlayBody({ onAsking }: { onAsking: (v: boolean) => void }) {
   useEffect(() => {
     const on = (e: StorageEvent) => {
       if (e.key === BOARD_KEY) setBoard(loadLocal<Board | null>(BOARD_KEY, null));
-      if (e.key === MATCH_START_KEY) dismissedNames.clear();
     };
     window.addEventListener("storage", on);
     return () => window.removeEventListener("storage", on);
@@ -164,12 +161,13 @@ function OverlayBody({ onAsking }: { onAsking: (v: boolean) => void }) {
     bansActive,
   );
 
-  // 질문은 한 번에 하나. 답하거나 "나중에"를 고르면 다시 묻지 않는다.
+  // 질문은 한 번에 하나. 한 번 띄운 사람은 답했든 아니든 한동안(askSnooze) 다시 묻지 않는다.
   useEffect(() => {
     if (ask) return;
-    const next = findAsk(capture, valid, Date.now());
+    const now = Date.now();
+    const next = findAsk(capture, valid, now);
     if (next) {
-      dismissedNames.add(next.key);
+      saveLocal(ASK_SNOOZE_KEY, snooze(parseSnooze(loadLocal<unknown>(ASK_SNOOZE_KEY, null)), next.key, now));
       // The question is derived from a new capture or board write, not from render state.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setAsk(next);
@@ -272,6 +270,9 @@ function OverlayBody({ onAsking }: { onAsking: (v: boolean) => void }) {
           suggestion={ask.suggestion}
           players={players.filter((p) => p.id !== me?.id && !p.is_me)}
           onDone={() => setAsk(null)}
+          onFailed={() =>
+            saveLocal(ASK_SNOOZE_KEY, unsnooze(parseSnooze(loadLocal<unknown>(ASK_SNOOZE_KEY, null)), ask.key))
+          }
         />
       )}
 

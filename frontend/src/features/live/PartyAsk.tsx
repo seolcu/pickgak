@@ -15,6 +15,7 @@ export function PartyAsk({
   suggestion,
   players,
   onDone,
+  onFailed,
 }: {
   captureId: number;
   row: number;
@@ -24,6 +25,8 @@ export function PartyAsk({
   suggestion: NameMatch | null;
   players: Player[];
   onDone: () => void;
+  /** 답을 저장하지 못했을 때 (다음 TAB에서 다시 물을 수 있게 한다) */
+  onFailed?: () => void;
 }) {
   const { t } = useTranslation();
   const [mode, setMode] = useState<"ask" | "pick" | "undo" | "error">(suggestion ? "ask" : "pick");
@@ -56,6 +59,7 @@ export function PartyAsk({
     } catch (e) {
       setError(String(e));
       setMode("error");
+      onFailed?.();
     } finally {
       setBusy(false);
     }
@@ -69,6 +73,7 @@ export function PartyAsk({
     } catch (e) {
       setError(String(e));
       setMode("error");
+      onFailed?.();
     } finally {
       setBusy(false);
     }
@@ -84,6 +89,7 @@ export function PartyAsk({
     } catch (e) {
       setError(String(e));
       setMode("error");
+      onFailed?.();
     } finally {
       setBusy(false);
     }
